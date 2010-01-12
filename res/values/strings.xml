@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
     <string name="app_name">SholesMod Updater</string>
-<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
-<string name="not_rooted">Your phone is not rooted. This is required in order to install custom ROMs, but could void your warranty. If you choose to continue, we accept no responsiblity for anything that may happen to your device.</string>
-<string name="not_rooted_pos">Root my device</string>
-<string name="not_rooted_neg">No thanks</string>
-<string name="url_signed">http://www.longtermevolution.us/CDMA/DROID/201/update.zip</string>
-<string name="md5_signed">3af35446905040a3123ec09195299596</string>
-<string name="url_exploit"></string>
-<string name="md5_exploit">cf653352967253e99d967498ffd9ce69</string>
+	<string name="not_rooted">Your phone is not rooted. This is required in order to install custom ROMs, but could void your warranty. If you choose to continue, we accept no responsiblity for anything that may happen to your device.</string>
+	<string name="not_rooted_pos">Root my device</string>
+	<string name="not_rooted_neg">No thanks</string>
+	<string name="url_signed">http://www.longtermevolution.us/CDMA/DROID/201/update.zip</string>
+	<string name="md5_signed">3af35446905040a3123ec09195299596</string>
+	<string name="url_exploit"></string>
+	<string name="md5_exploit">cf653352967253e99d967498ffd9ce69</string>
+	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
+    <string name="exploit_ready">You have the update.zip ready to exploit!</string>
+	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
 </resources>

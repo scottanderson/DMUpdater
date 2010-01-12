@@ -95,10 +95,10 @@ public class Updater extends Activity {
 			}
 			if(getString(R.string.md5_signed).equals(md5)) {
 				// Got signed-voles...
-				addText("Got 2.0.1 update.zip, adding exploit code");
+				addText(getString(R.string.add_exploit));
 				addExploit(update);
 			} else if(getString(R.string.md5_exploit).equals(md5)) {
-				addText("You have the update.zip ready to exploit!");
+				addText(getString(R.string.exploit_ready));
 				// Display a pop-up explaining how to root
 				new AlertDialog.Builder(this)
 				.setMessage(getString(R.string.reboot_recovery))
