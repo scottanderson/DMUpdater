@@ -1,4 +1,4 @@
-package info.sholes.updater;
+package info.sholes.camel.updater;
 
 import java.io.File;
 import java.io.FileInputStream;
