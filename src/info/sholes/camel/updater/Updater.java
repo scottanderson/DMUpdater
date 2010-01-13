@@ -45,6 +45,7 @@ public class Updater extends Activity {
 		if(!rooted) {
 			new AlertDialog.Builder(this)
 			.setMessage(getString(R.string.not_rooted))
+			.setCancelable(false)
 			.setPositiveButton(
 					getString(R.string.not_rooted_pos),
 					new OnClickListener() {
@@ -119,11 +120,15 @@ public class Updater extends Activity {
 				// Display a pop-up explaining how to root
 				new AlertDialog.Builder(this)
 				.setMessage(getString(R.string.reboot_recovery))
-				.setPositiveButton("OK", new OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						System.exit(1);
-					}
-				})
+				.setCancelable(false)
+				.setPositiveButton(
+						"OK",
+						new OnClickListener() {
+							public void onClick(DialogInterface dialog, int which) {
+								System.exit(1);
+							}
+						}
+				)
 				.show();
 				return;
 			} else {
@@ -230,6 +235,15 @@ public class Updater extends Activity {
 				addText(command + " = " + current_md5);
 				new AlertDialog.Builder(this)
 				.setMessage("Your recovery image is not flashed. This can be done for you programatically, but it has not yet been implemented.")
+				.setCancelable(false)
+				.setPositiveButton(
+						"OK",
+						new OnClickListener() {
+							public void onClick(DialogInterface dialog, int which) {
+								System.exit(1);
+							}
+						}
+				)
 				.show();
 				return;
 			}
@@ -242,12 +256,30 @@ public class Updater extends Activity {
 	private void doRomDownload() {
 		new AlertDialog.Builder(this)
 		.setMessage("We're ready to download the ROM. This has not yet been implemented.")
+		.setCancelable(false)
+		.setPositiveButton(
+				"OK",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						System.exit(1);
+					}
+				}
+		)
 		.show();
 	}
 	
 	private void doRomInstall() {
 		new AlertDialog.Builder(this)
 		.setMessage("We're ready to flash the ROM. This has not yet been implemented.")
+		.setCancelable(false)
+		.setPositiveButton(
+				"OK",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						System.exit(1);
+					}
+				}
+		)
 		.show();
 	}
 
