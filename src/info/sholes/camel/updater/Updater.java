@@ -21,6 +21,11 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 public class Updater extends Activity {
+	private enum Callback {
+		ROOT,
+		FLASH
+	}
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -63,23 +68,7 @@ public class Updater extends Activity {
 			)
 			.show();
 		} else {
-			// Download flash_image, the ROM, etc
-			try {
-				SuperUser.oneShot("cat /dev/block/mtdblock3 > /sdcard/recovery.md5chk");
-				File recovery = new File("/sdcard/recovery.md5chk");
-				String md5 = md5(recovery);
-				recovery.delete();
-				addText(md5);
-
-				addText(md5(new File("/sdcard/recovery-0.99.2b.img")));
-			} catch (Exception e) {
-				showException(e);
-				return;
-			}
-
-			//new AlertDialog.Builder(this)
-			//.setMessage("From here, we will check if you've got SPRecovery..if not, we'll download it and flash_image, and then set up the ROM")
-			//.show();
+			doFlash();
 		}
 	}
 
@@ -119,11 +108,68 @@ public class Updater extends Activity {
 		}
 	}
 
+	int download_attempts = 0;
+
+	private void doFlash() {
+		// Download flash_image
+		File flash_image = new File("/data/local/flash_image");
+		if(flash_image.exists()) {
+			try {
+				String md5 = md5(flash_image);
+				addText(flash_image.getAbsolutePath() + " = " + md5);
+				if(getString(R.string.md5_flash_image).equals(md5)) {
+					addText("/data/local/flash_image looks okay");
+					doFlash2();
+					return;
+				}
+			} catch (Exception e) {
+				showException(e);
+				return;
+			}
+		}
+
+
+		try {
+			download_attempts++;
+			if(download_attempts >= 3) {
+				addText("It's hopeless; giving up");
+				return;
+			}
+			downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH);
+		} catch (Exception e) {
+			showException(e);
+		}
+	}
+
+	private void doFlash2() {
+		// We have flash_image, download the ROM
+
+
+		//try {
+		//	File goodrecovery = new File("/sdcard/recovery-0.99.2b.img");
+		//	SuperUser.oneShot("cat /dev/block/mtdblock3 > /sdcard/recovery.md5chk");
+		//	File tmp = new File("/sdcard/recovery.md5chk");
+		//
+		//	// Show the md5 of the two copies
+		//	addText(md5(tmp, (int)goodrecovery.length()));
+		//	addText(md5(goodrecovery));
+		//
+		//	tmp.delete();
+		//} catch (Exception e) {
+		//	showException(e);
+		//	return;
+		//}
+
+		//new AlertDialog.Builder(this)
+		//.setMessage("From here, we will check if you've got SPRecovery..if not, we'll download it and flash_image, and then set up the ROM")
+		//.show();
+	}
+
 	private void downloadSigned(File update) {
 		addText("Downloading signed-voles-ESD56-from-ESD20.84263456.zip");
 
 		try {
-			downloadFile(update, new URL(getString(R.string.url_signed)));
+			downloadFile(update, new URL(getString(R.string.url_signed)), Callback.ROOT);
 		} catch(Exception e) {
 			showException(e);
 		}
@@ -131,27 +177,27 @@ public class Updater extends Activity {
 
 	private void addExploit(File update) {
 		try {
-			downloadFile(update, "droid-superuser.zip", true);
+			downloadFile(update, "droid-superuser.zip", true, Callback.ROOT);
 		} catch (Exception e) {
 			showException(e);
 		}
 	}
 
-	private void downloadFile(File fout, String asset_filename, boolean append) throws Exception {
+	private void downloadFile(File fout, String asset_filename, boolean append, Callback callback) throws Exception {
 		AssetFileDescriptor fd = getAssets().openFd(asset_filename);
-		downloadFile(fout, asset_filename, fd.createInputStream(), (int)fd.getLength(), append);
+		downloadFile(fout, asset_filename, fd.createInputStream(), (int)fd.getLength(), append, callback);
 	}
 
-	private void downloadFile(File fout, URL url) throws Exception {
+	private void downloadFile(File fout, URL url, Callback callback) throws Exception {
 		URLConnection uc = url.openConnection();
 		int length = 0;
 		try {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
-		downloadFile(fout, url.toString(), uc.getInputStream(), length, false);
+		downloadFile(fout, url.toString(), uc.getInputStream(), length, false, callback);
 	}
 
-	private void downloadFile(File fout, String from, InputStream is, int filelen, boolean append) throws Exception {
+	private void downloadFile(File fout, String from, InputStream is, int filelen, boolean append, final Callback callback) throws Exception {
 		if(!append && fout.exists())
 			fout.delete();
 		final OutputStream os = new FileOutputStream(fout, append);
@@ -179,7 +225,14 @@ public class Updater extends Activity {
 			protected void onPostExecute(Exception result) {
 				pd.hide();
 				if(result == null) {
-					doRoot();
+					switch(callback) {
+					case ROOT:
+						doRoot();
+						return;
+					case FLASH:
+						doFlash();
+						return;
+					}
 				} else {
 					showException(result);
 				}
