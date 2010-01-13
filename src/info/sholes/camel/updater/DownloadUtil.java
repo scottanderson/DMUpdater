@@ -87,6 +87,30 @@ public class DownloadUtil {
 			md5 += toHex(h);
 		return md5;
 	}
+	
+	public static String md5(InputStream is, int length) throws Exception {
+		int bytes_read;
+		byte[] buffer = new byte[1024];
+		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+		int total = 0;
+		while((bytes_read = is.read(buffer)) > 0) {
+			digest.update(buffer, 0, bytes_read);
+			
+			total += bytes_read;
+			if(total >= length) {
+				if(total == length)
+					break;
+				throw new RuntimeException("too much");
+			}
+		}
+		if(total < length)
+			throw new RuntimeException("not enough");
+		byte[] hash = digest.digest();
+		String md5 = "";
+		for(byte h : hash)
+			md5 += toHex(h);
+		return md5;
+	}
 
 	private static String toHex(byte h) {
 		return hexChar((h >> 4) & 0x0F) + hexChar(h & 0x0F);

@@ -1,22 +1,14 @@
 package info.sholes.camel.updater;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
-import java.net.URLConnection;
-import java.security.MessageDigest;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.content.res.AssetFileDescriptor;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -94,6 +86,9 @@ public class Updater extends Activity {
 		case ROM_DOWNLOAD:
 			doRomDownload();
 			return;
+		case ROM_INSTALL:
+			doRomInstall();
+			return;
 		default:
 			addText("Unknown callback: " + c.name());
 			return;
@@ -105,7 +100,7 @@ public class Updater extends Activity {
 		while(update.exists()) {
 			String md5;
 			try {
-				md5 = du.md5(update);
+				md5 = DownloadUtil.md5(update);
 			} catch (Exception e) {
 				// Re-download
 				break;
@@ -153,7 +148,7 @@ public class Updater extends Activity {
 	private void doFlashImageDownload() {
 		if(flash_image.exists()) {
 			try {
-				String md5 = du.md5(flash_image);
+				String md5 = DownloadUtil.md5(flash_image);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
 					addText(flash_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
@@ -186,7 +181,7 @@ public class Updater extends Activity {
 		// We have flash_image, download the recovery image
 		if(recovery_image.exists()) {
 			try {
-				String md5 = du.md5(recovery_image);
+				String md5 = DownloadUtil.md5(recovery_image);
 				if(getString(R.string.md5_recovery_image).equals(md5)) {
 					addText(recovery_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
@@ -221,7 +216,10 @@ public class Updater extends Activity {
 
 		try {
 			// Calculate md5 of the recovery block, mtdblock3
-			String current_md5 = SuperUser.oneShotMd5("cat /dev/block/mtdblock3 | head -c " + recovery_image.length());
+			int length = (int)recovery_image.length();
+			// TODO: validate length <= the block size
+			String command = "dd if=/dev/block/mtdblock3 count=1 bs=" + length;
+			String current_md5 = SuperUser.oneShotMd5(command, length);
 			
 			if(getString(R.string.md5_recovery_image).equals(current_md5)) {
 				addText("/dev/block/mtdblock3 looks okay");
@@ -229,6 +227,7 @@ public class Updater extends Activity {
 				doRomDownload();
 				return;
 			} else {
+				addText(command + " = " + current_md5);
 				new AlertDialog.Builder(this)
 				.setMessage("Your recovery image is not flashed. This can be done for you programatically, but it has not yet been implemented.")
 				.show();
@@ -241,7 +240,15 @@ public class Updater extends Activity {
 	}
 	
 	private void doRomDownload() {
-		
+		new AlertDialog.Builder(this)
+		.setMessage("We're ready to download the ROM. This has not yet been implemented.")
+		.show();
+	}
+	
+	private void doRomInstall() {
+		new AlertDialog.Builder(this)
+		.setMessage("We're ready to flash the ROM. This has not yet been implemented.")
+		.show();
 	}
 
 	protected void showException(Exception ex) {
