@@ -1,8 +1,10 @@
 package info.sholes.camel.updater;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
@@ -32,6 +34,18 @@ public class SuperUser {
 		}
 		su.checkErr();
 		return output;
+	}
+	
+	public static String oneShotMd5(String command) throws Exception {
+		SuperUser su = new SuperUser();
+		su.in.write(command);
+		su.in.newLine();
+		su.in.write("exit");
+		su.in.newLine();
+		su.in.flush();
+		su.p.waitFor();
+		
+		return DownloadUtil.md5(su.p.getInputStream());
 	}
 
 	private SuperUser() throws Exception {

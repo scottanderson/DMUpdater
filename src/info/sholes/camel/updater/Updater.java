@@ -73,7 +73,7 @@ public class Updater extends Activity {
 			.show();
 		} else {
 			download_attempts = 0;
-			doFlashImage();
+			doFlashImageDownload();
 		}
 	}
 	
@@ -82,14 +82,17 @@ public class Updater extends Activity {
 		case ROOT:
 			doRoot();
 			return;
-		case FLASH_IMAGE:
-			doFlashImage();
+		case FLASH_IMAGE_DOWNLOAD:
+			doFlashImageDownload();
 			return;
-		case RECOVERY_IMAGE:
-			doRecoveryImage();
+		case RECOVERY_IMAGE_DOWNLOAD:
+			doRecoveryImageDownload();
 			return;
 		case FLASH_RECOVERY:
 			doFlashRecovery();
+			return;
+		case ROM_DOWNLOAD:
+			doRomDownload();
 			return;
 		default:
 			addText("Unknown callback: " + c.name());
@@ -147,14 +150,14 @@ public class Updater extends Activity {
 		}
 	}
 
-	private void doFlashImage() {
+	private void doFlashImageDownload() {
 		if(flash_image.exists()) {
 			try {
 				String md5 = du.md5(flash_image);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
 					addText(flash_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
-					doRecoveryImage();
+					doRecoveryImageDownload();
 					return;
 				} else {
 					addText(flash_image.getAbsolutePath() + " = " + md5);
@@ -173,13 +176,13 @@ public class Updater extends Activity {
 				addText("It's hopeless; giving up");
 				return;
 			}
-			du.downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH_IMAGE);
+			du.downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH_IMAGE_DOWNLOAD);
 		} catch (Exception e) {
 			showException(e);
 		}
 	}
 
-	private void doRecoveryImage() {
+	private void doRecoveryImageDownload() {
 		// We have flash_image, download the recovery image
 		if(recovery_image.exists()) {
 			try {
@@ -206,7 +209,7 @@ public class Updater extends Activity {
 				addText("It's hopeless; giving up");
 				return;
 			}
-			du.downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.RECOVERY_IMAGE);
+			du.downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.RECOVERY_IMAGE_DOWNLOAD);
 		} catch (Exception e) {
 			showException(e);
 		}
@@ -214,26 +217,31 @@ public class Updater extends Activity {
 
 	private void doFlashRecovery() {
 		// Recovery image downloaded, flash it if needed
-		addText("doFlash3()");
+		addText("doFlashRecovery()");
 
-		//try {
-		//	File goodrecovery = new File("/sdcard/recovery-0.99.2b.img");
-		//	SuperUser.oneShot("cat /dev/block/mtdblock3 > /sdcard/recovery.md5chk");
-		//	File tmp = new File("/sdcard/recovery.md5chk");
-		//
-		//	// Show the md5 of the two copies
-		//	addText(md5(tmp, (int)goodrecovery.length()));
-		//	addText(md5(goodrecovery));
-		//
-		//	tmp.delete();
-		//} catch (Exception e) {
-		//	showException(e);
-		//	return;
-		//}
-
-		//new AlertDialog.Builder(this)
-		//.setMessage("From here, we will check if you've got SPRecovery..if not, we'll download it and flash_image, and then set up the ROM")
-		//.show();
+		try {
+			// Calculate md5 of the recovery block, mtdblock3
+			String current_md5 = SuperUser.oneShotMd5("cat /dev/block/mtdblock3 | head -c " + recovery_image.length());
+			
+			if(getString(R.string.md5_recovery_image).equals(current_md5)) {
+				addText("/dev/block/mtdblock3 looks okay");
+				download_attempts = 0;
+				doRomDownload();
+				return;
+			} else {
+				new AlertDialog.Builder(this)
+				.setMessage("Your recovery image is not flashed. This can be done for you programatically, but it has not yet been implemented.")
+				.show();
+				return;
+			}
+		} catch (Exception e) {
+			showException(e);
+			return;
+		}
+	}
+	
+	private void doRomDownload() {
+		
 	}
 
 	protected void showException(Exception ex) {

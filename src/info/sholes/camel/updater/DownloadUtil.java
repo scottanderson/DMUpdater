@@ -70,13 +70,16 @@ public class DownloadUtil {
 			}
 		}.execute(is, os);
 	}
+	
+	public static String md5(File f) throws Exception {
+		return md5(new FileInputStream(f));
+	}
 
-	public String md5(File f) throws Exception {
-		FileInputStream fis = new FileInputStream(f);
+	public static String md5(InputStream is) throws Exception {
 		int bytes_read;
 		byte[] buffer = new byte[1024];
 		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-		while((bytes_read = fis.read(buffer)) > 0)
+		while((bytes_read = is.read(buffer)) > 0)
 			digest.update(buffer, 0, bytes_read);
 		byte[] hash = digest.digest();
 		String md5 = "";
@@ -85,11 +88,11 @@ public class DownloadUtil {
 		return md5;
 	}
 
-	private String toHex(byte h) {
+	private static String toHex(byte h) {
 		return hexChar((h >> 4) & 0x0F) + hexChar(h & 0x0F);
 	}
 
-	private String hexChar(int i) {
+	private static String hexChar(int i) {
 		if(i < 10)
 			return Integer.toString(i);
 		switch(i) {
