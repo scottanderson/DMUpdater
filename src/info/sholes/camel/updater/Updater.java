@@ -23,14 +23,23 @@ import android.widget.TextView;
 public class Updater extends Activity {
 	private enum Callback {
 		ROOT,
-		FLASH
+		FLASH,
+		FLASH2
 	}
+
+	int download_attempts = 0;
+	File flash_image = null;
+	File recovery_image = null;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+
+		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
+		flash_image = new File(tmp + "/flash_image");
+		recovery_image = new File(tmp + "/recovery.img");
 
 		boolean rooted = new File("/system/bin/su").exists();
 		if(rooted) {
@@ -68,6 +77,7 @@ public class Updater extends Activity {
 			)
 			.show();
 		} else {
+			download_attempts = 0;
 			doFlash();
 		}
 	}
@@ -108,17 +118,14 @@ public class Updater extends Activity {
 		}
 	}
 
-	int download_attempts = 0;
-
 	private void doFlash() {
-		// Download flash_image
-		File flash_image = new File("/data/local/flash_image");
 		if(flash_image.exists()) {
 			try {
 				String md5 = md5(flash_image);
 				addText(flash_image.getAbsolutePath() + " = " + md5);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
-					addText("/data/local/flash_image looks okay");
+					addText(flash_image.getAbsolutePath() + " looks okay");
+					download_attempts = 0;
 					doFlash2();
 					return;
 				}
@@ -126,8 +133,9 @@ public class Updater extends Activity {
 				showException(e);
 				return;
 			}
+		} else {
+			addText(flash_image.getAbsolutePath() + " doesn't exist");
 		}
-
 
 		try {
 			download_attempts++;
@@ -142,8 +150,39 @@ public class Updater extends Activity {
 	}
 
 	private void doFlash2() {
-		// We have flash_image, download the ROM
+		// We have flash_image, download the recovery image
+		if(recovery_image.exists()) {
+			try {
+				String md5 = md5(recovery_image);
+				addText(recovery_image.getAbsolutePath() + " = " + md5);
+				if(getString(R.string.md5_recovery_image).equals(md5)) {
+					addText(recovery_image.getAbsolutePath() + " looks okay");
+					download_attempts = 0;
+					doFlash3();
+					return;
+				}
+			} catch (Exception e) {
+				showException(e);
+				return;
+			}
+		} else {
+			addText(recovery_image.getAbsolutePath() + " doesn't exist");
+		}
 
+		try {
+			download_attempts++;
+			if(download_attempts >= 3) {
+				addText("It's hopeless; giving up");
+				return;
+			}
+			downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.FLASH2);
+		} catch (Exception e) {
+			showException(e);
+		}
+	}
+
+	private void doFlash3() {
+		// Recovery image downloaded, flash it if needed
 
 		//try {
 		//	File goodrecovery = new File("/sdcard/recovery-0.99.2b.img");
@@ -194,6 +233,7 @@ public class Updater extends Activity {
 		try {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
+		addText("Downloading " + url.toString());
 		downloadFile(fout, url.toString(), uc.getInputStream(), length, false, callback);
 	}
 
@@ -231,6 +271,9 @@ public class Updater extends Activity {
 						return;
 					case FLASH:
 						doFlash();
+						return;
+					case FLASH2:
+						doFlash2();
 						return;
 					}
 				} else {

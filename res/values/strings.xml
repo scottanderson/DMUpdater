@@ -12,4 +12,6 @@
 	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
 	<string name="url_flash_image">http://sp.sholes.info/flash_image</string>
 	<string name="md5_flash_image">8d99ef03593ca1143880b37c71376661</string>
+	<string name="url_recovery_image">http://www.sholes.info/downloads/sp/recovery-0.99.0b.img</string>
+	<string name="md5_recovery_image">e960884111fcf9ffcfc7c7ec11c75987</string>
 </resources>
