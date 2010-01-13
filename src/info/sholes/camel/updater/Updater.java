@@ -38,6 +38,7 @@ public class Updater extends Activity {
 					return;
 				}
 			} catch (Exception e) {
+				// Permission denied, most likely
 				rooted = false;
 			}
 		}
@@ -155,7 +156,6 @@ public class Updater extends Activity {
 			try {
 				String md5 = DownloadUtil.md5(flash_image);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
-					addText(flash_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
 					doRecoveryImageDownload();
 					return;
@@ -188,7 +188,6 @@ public class Updater extends Activity {
 			try {
 				String md5 = DownloadUtil.md5(recovery_image);
 				if(getString(R.string.md5_recovery_image).equals(md5)) {
-					addText(recovery_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
 					doFlashRecovery();
 					return;
@@ -217,7 +216,6 @@ public class Updater extends Activity {
 
 	private void doFlashRecovery() {
 		// Recovery image downloaded, flash it if needed
-		addText("doFlashRecovery()");
 
 		try {
 			// Calculate md5 of the recovery block, mtdblock3
@@ -227,7 +225,6 @@ public class Updater extends Activity {
 			String current_md5 = SuperUser.oneShotMd5(command, length);
 			
 			if(getString(R.string.md5_recovery_image).equals(current_md5)) {
-				addText("/dev/block/mtdblock3 looks okay");
 				download_attempts = 0;
 				doRomDownload();
 				return;
