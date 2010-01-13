@@ -21,15 +21,10 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 public class Updater extends Activity {
-	private enum Callback {
-		ROOT,
-		FLASH,
-		FLASH2
-	}
-
-	int download_attempts = 0;
-	File flash_image = null;
-	File recovery_image = null;
+	private DownloadUtil du = null;
+	private int download_attempts = 0;
+	private File flash_image = null;
+	private File recovery_image = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -37,6 +32,7 @@ public class Updater extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		du = new DownloadUtil(this);
 		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
@@ -61,6 +57,7 @@ public class Updater extends Activity {
 					getString(R.string.not_rooted_pos),
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
+							download_attempts = 0;
 							doRoot();
 						}
 					}
@@ -76,24 +73,49 @@ public class Updater extends Activity {
 			.show();
 		} else {
 			download_attempts = 0;
-			doFlash();
+			doFlashImage();
+		}
+	}
+	
+	public void callback(Callback c) {
+		switch(c) {
+		case ROOT:
+			doRoot();
+			return;
+		case FLASH_IMAGE:
+			doFlashImage();
+			return;
+		case RECOVERY_IMAGE:
+			doRecoveryImage();
+			return;
+		case FLASH_RECOVERY:
+			doFlashRecovery();
+			return;
+		default:
+			addText("Unknown callback: " + c.name());
+			return;
 		}
 	}
 
 	private void doRoot() {
 		File update = new File("/sdcard/update.zip");
-		if(update.exists()) {
+		while(update.exists()) {
 			String md5;
 			try {
-				md5 = md5(update);
+				md5 = du.md5(update);
 			} catch (Exception e) {
-				downloadSigned(update);
-				return;
+				// Re-download
+				break;
 			}
 			if(getString(R.string.md5_signed).equals(md5)) {
 				// Got signed-voles...
 				addText(getString(R.string.add_exploit));
-				addExploit(update);
+				try {
+					du.downloadFile(update, "droid-superuser.zip", true, Callback.ROOT);
+				} catch (Exception e) {
+					showException(e);
+				}
+				return;
 			} else if(getString(R.string.md5_exploit).equals(md5)) {
 				addText(getString(R.string.exploit_ready));
 				// Display a pop-up explaining how to root
@@ -105,26 +127,37 @@ public class Updater extends Activity {
 					}
 				})
 				.show();
+				return;
 			} else {
 				addText("Unknown MD5: " + md5);
-				downloadSigned(update);
+				// Fall-through to re-download
+				break;
 			}
-		} else {
-			addText("update.zip not found");
-			downloadSigned(update);
+		}
+		
+		try {
+			download_attempts++;
+			if(download_attempts >= 3) {
+				addText("It's hopeless; giving up");
+				return;
+			}
+			du.downloadFile(update, new URL(getString(R.string.url_signed)), Callback.ROOT);
+		} catch(Exception e) {
+			showException(e);
 		}
 	}
 
-	private void doFlash() {
+	private void doFlashImage() {
 		if(flash_image.exists()) {
 			try {
-				String md5 = md5(flash_image);
-				addText(flash_image.getAbsolutePath() + " = " + md5);
+				String md5 = du.md5(flash_image);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
 					addText(flash_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
-					doFlash2();
+					doRecoveryImage();
 					return;
+				} else {
+					addText(flash_image.getAbsolutePath() + " = " + md5);
 				}
 			} catch (Exception e) {
 				showException(e);
@@ -140,23 +173,24 @@ public class Updater extends Activity {
 				addText("It's hopeless; giving up");
 				return;
 			}
-			downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH);
+			du.downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH_IMAGE);
 		} catch (Exception e) {
 			showException(e);
 		}
 	}
 
-	private void doFlash2() {
+	private void doRecoveryImage() {
 		// We have flash_image, download the recovery image
 		if(recovery_image.exists()) {
 			try {
-				String md5 = md5(recovery_image);
-				addText(recovery_image.getAbsolutePath() + " = " + md5);
+				String md5 = du.md5(recovery_image);
 				if(getString(R.string.md5_recovery_image).equals(md5)) {
 					addText(recovery_image.getAbsolutePath() + " looks okay");
 					download_attempts = 0;
-					doFlash3();
+					doFlashRecovery();
 					return;
+				} else {
+					addText(recovery_image.getAbsolutePath() + " = " + md5);
 				}
 			} catch (Exception e) {
 				showException(e);
@@ -172,14 +206,15 @@ public class Updater extends Activity {
 				addText("It's hopeless; giving up");
 				return;
 			}
-			downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.FLASH2);
+			du.downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.RECOVERY_IMAGE);
 		} catch (Exception e) {
 			showException(e);
 		}
 	}
 
-	private void doFlash3() {
+	private void doFlashRecovery() {
 		// Recovery image downloaded, flash it if needed
+		addText("doFlash3()");
 
 		//try {
 		//	File goodrecovery = new File("/sdcard/recovery-0.99.2b.img");
@@ -201,124 +236,13 @@ public class Updater extends Activity {
 		//.show();
 	}
 
-	private void downloadSigned(File update) {
-		addText("Downloading signed-voles-ESD56-from-ESD20.84263456.zip");
-
-		try {
-			downloadFile(update, new URL(getString(R.string.url_signed)), Callback.ROOT);
-		} catch(Exception e) {
-			showException(e);
-		}
-	}
-
-	private void addExploit(File update) {
-		try {
-			downloadFile(update, "droid-superuser.zip", true, Callback.ROOT);
-		} catch (Exception e) {
-			showException(e);
-		}
-	}
-
-	private void downloadFile(File fout, String asset_filename, boolean append, Callback callback) throws Exception {
-		AssetFileDescriptor fd = getAssets().openFd(asset_filename);
-		downloadFile(fout, asset_filename, fd.createInputStream(), (int)fd.getLength(), append, callback);
-	}
-
-	private void downloadFile(File fout, URL url, Callback callback) throws Exception {
-		URLConnection uc = url.openConnection();
-		int length = 0;
-		try {
-			length = Integer.parseInt(uc.getHeaderField("content-length"));
-		} catch(Exception e) {}
-		addText("Downloading " + url.toString());
-		downloadFile(fout, url.toString(), uc.getInputStream(), length, false, callback);
-	}
-
-	private void downloadFile(File fout, String from, InputStream is, int filelen, boolean append, final Callback callback) throws Exception {
-		if(!append && fout.exists())
-			fout.delete();
-		final OutputStream os = new FileOutputStream(fout, append);
-
-		final ProgressDialog pd = new ProgressDialog(this);
-		pd.setTitle(append ? "Appending..." : "Downloading...");
-		pd.setMessage("From " + from + "\nTo " + fout.toString());
-		if(filelen == 0) {
-			pd.setIndeterminate(true);
-		} else {
-			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			pd.setMax(filelen);
-		}
-		pd.setCancelable(false);
-		pd.show();
-
-		new DownloadTask() {
-			@Override
-			protected void onProgressUpdate(Integer... values) {
-				for(Integer i : values)
-					pd.incrementProgressBy(i.intValue());
-			}
-
-			@Override
-			protected void onPostExecute(Exception result) {
-				pd.hide();
-				if(result == null) {
-					switch(callback) {
-					case ROOT:
-						doRoot();
-						return;
-					case FLASH:
-						doFlash();
-						return;
-					case FLASH2:
-						doFlash2();
-						return;
-					}
-				} else {
-					showException(result);
-				}
-			}
-		}.execute(is, os);
-	}
-
-	private String md5(File f) throws Exception {
-		FileInputStream fis = new FileInputStream(f);
-		int bytes_read;
-		byte[] buffer = new byte[1024];
-		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-		while((bytes_read = fis.read(buffer)) > 0)
-			digest.update(buffer, 0, bytes_read);
-		byte[] hash = digest.digest();
-		String md5 = "";
-		for(byte h : hash)
-			md5 += toHex(h);
-		return md5;
-	}
-
-	private String toHex(byte h) {
-		return hexChar((h >> 4) & 0x0F) + hexChar(h & 0x0F);
-	}
-
-	private String hexChar(int i) {
-		if(i < 10)
-			return Integer.toString(i);
-		switch(i) {
-		case 10: return "a";
-		case 11: return "b";
-		case 12: return "c";
-		case 13: return "d";
-		case 14: return "e";
-		case 15: return "f";
-		}
-		return "?";
-	}
-
-	private void showException(Exception ex) {
+	protected void showException(Exception ex) {
 		StringWriter sw = new StringWriter();
 		ex.printStackTrace(new PrintWriter(sw));
 		addText(sw.toString());
 	}
 
-	private void addText(String text) {
+	protected void addText(String text) {
 		TextView tvText = (TextView) findViewById(R.id.TextView01);
 		String ot = "" + tvText.getText();
 		if(ot.length() > 0)
