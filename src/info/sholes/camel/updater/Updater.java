@@ -60,7 +60,6 @@ public class Updater extends Activity {
 			.setPositiveButton(
 					getString(R.string.not_rooted_pos),
 					new OnClickListener() {
-						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							doRoot();
 						}
@@ -69,7 +68,6 @@ public class Updater extends Activity {
 			.setNegativeButton(
 					getString(R.string.not_rooted_neg),
 					new OnClickListener() {
-						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							System.exit(1);
 						}
@@ -102,7 +100,6 @@ public class Updater extends Activity {
 				new AlertDialog.Builder(this)
 				.setMessage(getString(R.string.reboot_recovery))
 				.setPositiveButton("OK", new OnClickListener() {
-					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						System.exit(1);
 					}
@@ -323,6 +320,9 @@ public class Updater extends Activity {
 
 	private void addText(String text) {
 		TextView tvText = (TextView) findViewById(R.id.TextView01);
-		tvText.setText(tvText.getText() + "\n" + text);
+		String ot = "" + tvText.getText();
+		if(ot.length() > 0)
+			ot += "\n";
+		tvText.setText(ot + text);
 	}
 }
