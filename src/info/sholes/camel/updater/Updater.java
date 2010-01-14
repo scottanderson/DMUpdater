@@ -7,6 +7,7 @@ import java.net.URL;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
@@ -15,8 +16,10 @@ import android.widget.TextView;
 public class Updater extends Activity {
 	private DownloadUtil du = null;
 	private int download_attempts = 0;
+	private File update_zip = null;
 	private File flash_image = null;
 	private File recovery_image = null;
+	private File rom_tgz = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -25,9 +28,11 @@ public class Updater extends Activity {
 		setContentView(R.layout.main);
 
 		du = new DownloadUtil(this);
+		update_zip = new File("/sdcard/update.zip");
 		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
+		rom_tgz = new File("/sdcard/sholes.rom.tgz");
 
 		boolean rooted = new File("/system/bin/su").exists();
 		if(rooted) {
@@ -70,7 +75,7 @@ public class Updater extends Activity {
 			doFlashImageDownload();
 		}
 	}
-	
+
 	public void callback(Callback c) {
 		switch(c) {
 		case ROOT:
@@ -98,11 +103,10 @@ public class Updater extends Activity {
 	}
 
 	private void doRoot() {
-		File update = new File("/sdcard/update.zip");
-		while(update.exists()) {
+		while(update_zip.exists()) {
 			String md5;
 			try {
-				md5 = DownloadUtil.md5(update);
+				md5 = DownloadUtil.md5(update_zip);
 			} catch (Exception e) {
 				// Re-download
 				break;
@@ -111,7 +115,7 @@ public class Updater extends Activity {
 				// Got signed-voles...
 				addText(getString(R.string.add_exploit));
 				try {
-					du.downloadFile(update, "droid-superuser.zip", true, Callback.ROOT);
+					du.downloadFile(update_zip, "droid-superuser.zip", true, Callback.ROOT);
 				} catch (Exception e) {
 					showException(e);
 				}
@@ -138,14 +142,14 @@ public class Updater extends Activity {
 				break;
 			}
 		}
-		
+
 		try {
 			download_attempts++;
 			if(download_attempts >= 3) {
 				addText("It's hopeless; giving up");
 				return;
 			}
-			du.downloadFile(update, new URL(getString(R.string.url_signed)), Callback.ROOT);
+			du.downloadFile(update_zip, new URL(getString(R.string.url_signed)), Callback.ROOT);
 		} catch(Exception e) {
 			showException(e);
 		}
@@ -223,7 +227,7 @@ public class Updater extends Activity {
 			// TODO: validate length <= the block size
 			String command = "dd if=/dev/block/mtdblock3 count=1 bs=" + length;
 			String current_md5 = SuperUser.oneShotMd5(command, length);
-			
+
 			if(getString(R.string.md5_recovery_image).equals(current_md5)) {
 				download_attempts = 0;
 				doRomDownload();
@@ -231,10 +235,18 @@ public class Updater extends Activity {
 			} else {
 				addText(command + " = " + current_md5);
 				new AlertDialog.Builder(this)
-				.setMessage("Your recovery image is not flashed. This can be done for you programatically, but it has not yet been implemented.")
+				.setMessage("Your recovery image needs to be updated. This can be done for you, but it has not yet been tested, and it might not work.")
 				.setCancelable(false)
 				.setPositiveButton(
-						"OK",
+						"I understand the risk",
+						new OnClickListener() {
+							public void onClick(DialogInterface dialog, int which) {
+								confirmFlashRecovery();
+							}
+						}
+				)
+				.setNegativeButton(
+						"Quit (recommended)",
 						new OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
 								System.exit(1);
@@ -249,22 +261,86 @@ public class Updater extends Activity {
 			return;
 		}
 	}
-	
-	private void doRomDownload() {
+
+	private void confirmFlashRecovery() {
+		// Double-check that they are sure
 		new AlertDialog.Builder(this)
-		.setMessage("We're ready to download the ROM. This has not yet been implemented.")
+		.setMessage("Are you really, really sure? This definitely will void your warranty, and probably will break your recovery mode.")
 		.setCancelable(false)
 		.setPositiveButton(
-				"OK",
+				"Turn back now (recommended)",
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						System.exit(1);
 					}
 				}
 		)
+		.setNegativeButton(
+				"Flash recovery image",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						confirmedFlashRecovery();
+					}
+				}
+		)
 		.show();
 	}
-	
+
+	private void confirmedFlashRecovery() {
+		// They really want this to happen
+
+		final String command = flash_image.getAbsolutePath() + " recovery " + recovery_image.getAbsolutePath();
+
+		ProgressDialog pd = new ProgressDialog(this);
+		pd.setCancelable(false);
+		pd.setMessage(command);
+		pd.setIndeterminate(true);
+		pd.show();
+
+		try {
+			SuperUser.oneShot(command);
+		} catch (Exception e) {
+			showException(e);
+			pd.hide();
+			return;
+		}
+
+		pd.hide();
+		// Go back and check the MD5
+		doFlashRecovery();
+	}
+
+	private void doRomDownload() {
+		if(rom_tgz.exists()) {
+			try {
+				String md5 = DownloadUtil.md5(rom_tgz);
+				if(getString(R.string.md5_rom).equals(md5)) {
+					download_attempts = 0;
+					doRomInstall();
+					return;
+				} else {
+					addText(rom_tgz.getAbsolutePath() + " = " + md5);
+				}
+			} catch (Exception e) {
+				showException(e);
+				return;
+			}
+		} else {
+			addText(rom_tgz.getAbsolutePath() + " doesn't exist");
+		}
+
+		try {
+			download_attempts++;
+			if(download_attempts >= 3) {
+				addText("It's hopeless; giving up");
+				return;
+			}
+			du.downloadFile(rom_tgz, new URL(getString(R.string.url_rom)), Callback.ROM_DOWNLOAD);
+		} catch (Exception e) {
+			showException(e);
+		}
+	}
+
 	private void doRomInstall() {
 		new AlertDialog.Builder(this)
 		.setMessage("We're ready to flash the ROM. This has not yet been implemented.")
