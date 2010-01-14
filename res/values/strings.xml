@@ -11,8 +11,7 @@
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
 	<string name="md5_exploit">cf653352967253e99d967498ffd9ce69</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
-	<string name="reboot_recovery">Reboot recovery, and then select install sdcard update.zip from the menu.</string>
-	<string name="reboot_recovery_doit">Reboot recovery</string>
+	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
 	
 	<string name="url_flash_image">http://sp.sholes.info/flash_image</string>
 	<string name="md5_flash_image">8d99ef03593ca1143880b37c71376661</string>

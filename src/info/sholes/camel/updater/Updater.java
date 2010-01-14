@@ -139,14 +139,6 @@ public class Updater extends Activity {
 				new AlertDialog.Builder(this)
 				.setMessage(R.string.reboot_recovery)
 				.setCancelable(false)
-				.setPositiveButton(
-						R.string.reboot_recovery_doit,
-						new OnClickListener() {
-							public void onClick(DialogInterface dialog, int which) {
-								reboot_recovery();
-							}
-						}
-				)
 				.show();
 				return;
 			} else {
@@ -395,16 +387,8 @@ public class Updater extends Activity {
 
 		try {
 			SuperUser.oneShot("echo -n \"--install_tgz " + path + "\" > /cache/recovery/command");
-			reboot_recovery();
-		} catch(Exception e) {
-			showException(e);
-		}
-	}
-
-	private void reboot_recovery() {
-		try {
 			SuperUser.oneShot("/system/bin/reboot recovery");
-		} catch (Exception e) {
+		} catch(Exception e) {
 			showException(e);
 		}
 	}
