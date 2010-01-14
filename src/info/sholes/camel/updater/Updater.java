@@ -13,6 +13,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Updater extends Activity {
@@ -62,10 +63,10 @@ public class Updater extends Activity {
 
 		if(!rooted) {
 			new AlertDialog.Builder(this)
-			.setMessage(getString(R.string.not_rooted))
+			.setMessage(R.string.not_rooted)
 			.setCancelable(false)
 			.setPositiveButton(
-					getString(R.string.not_rooted_pos),
+					R.string.not_rooted_pos,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							download_attempts = 0;
@@ -74,7 +75,7 @@ public class Updater extends Activity {
 					}
 			)
 			.setNegativeButton(
-					getString(R.string.not_rooted_neg),
+					R.string.not_rooted_neg,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							System.exit(1);
@@ -136,7 +137,7 @@ public class Updater extends Activity {
 				addText(getString(R.string.exploit_ready));
 				// Display a pop-up explaining how to root
 				new AlertDialog.Builder(this)
-				.setMessage(getString(R.string.reboot_recovery))
+				.setMessage(R.string.reboot_recovery)
 				.setCancelable(false)
 				.setPositiveButton(
 						"Reboot",
@@ -408,10 +409,9 @@ public class Updater extends Activity {
 	}
 
 	protected void addText(String text) {
-		TextView tvText = (TextView) findViewById(R.id.TextView01);
-		String ot = "" + tvText.getText();
-		if(ot.length() > 0)
-			ot += "\n";
-		tvText.setText(ot + text);
+		TextView tvText = new TextView(this);
+		tvText.setText(text);
+		LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
+		ll.addView(tvText);
 	}
 }
