@@ -1,9 +1,11 @@
 package info.sholes.camel.updater;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.Properties;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,6 +28,16 @@ public class Updater extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		
+		try {
+			Properties p = new Properties();
+			p.load(new FileInputStream("/system/build.prop"));
+			addText("Current ROM: " + p.getProperty("ro.product.model"));
+			addText("Version: " + p.getProperty("ro.build.display.id"));
+		} catch(Exception e) {
+			showException(e);
+			return;
+		}
 
 		du = new DownloadUtil(this);
 		update_zip = new File("/sdcard/update.zip");
@@ -349,6 +361,7 @@ public class Updater extends Activity {
 	}
 
 	private void doRomInstall() {
+		// ROM is downloaded, ready to ask user about options
 		new AlertDialog.Builder(this)
 		.setMessage(R.string.confirm_flash_rom)
 		.setCancelable(false)
