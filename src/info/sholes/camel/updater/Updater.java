@@ -127,7 +127,7 @@ public class Updater extends Activity {
 				.setMessage(getString(R.string.reboot_recovery))
 				.setCancelable(false)
 				.setPositiveButton(
-						"Reboot",
+						R.string.reboot_recovery_doit,
 						new OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
 								reboot_recovery();
@@ -372,8 +372,15 @@ public class Updater extends Activity {
 	}
 
 	private void confirmedRomInstall() {
+		String path = rom_tgz.getAbsolutePath();
+		if(!path.startsWith("/sdcard/")) {
+			addText(path + " should be on /sdcard...what happened?");
+			return;
+		}
+		path = "SDCARD:" + path.substring(8);
+
 		try {
-			SuperUser.oneShot("echo -n \"--install_tgz SDCARD:sholes.rom.tgz\" > /cache/recovery/command");
+			SuperUser.oneShot("echo -n \"--install_tgz " + path + "\" > /cache/recovery/command");
 			reboot_recovery();
 		} catch(Exception e) {
 			showException(e);
