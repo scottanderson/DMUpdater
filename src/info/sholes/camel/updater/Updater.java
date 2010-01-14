@@ -160,6 +160,13 @@ public class Updater extends Activity {
 			try {
 				String md5 = DownloadUtil.md5(flash_image);
 				if(getString(R.string.md5_flash_image).equals(md5)) {
+					try {
+						Runtime.getRuntime().exec("chmod 755 " + flash_image.getAbsolutePath());
+					} catch(Exception e) {
+						showException(e);
+						return;
+					}
+
 					download_attempts = 0;
 					doRecoveryImageDownload();
 					return;
