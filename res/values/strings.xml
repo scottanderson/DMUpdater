@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">SholesMod Updater</string>
+	<string name="app_label">SM Updater</string>
+	<string name="activity_label">SholesMod Updater</string>
 	
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>
@@ -26,7 +27,7 @@
 	
 	<string name="url_rom">http://www.sholes.info/downloads/sp/sholes_info-1.0.1.rom.tgz</string>
 	<string name="md5_rom">50373feb7a4b8f55c53631d1eb28ed16</string>
-    <string name="confirm_flash_rom">We are ready to flash the ROM.</string>
-    <string name="confirm_flash_rom_yes">Flash ROM</string>
-    <string name="confirm_flash_rom_no">Quit (recommended)</string>
+	<string name="confirm_flash_rom">We are ready to flash the ROM.</string>
+	<string name="confirm_flash_rom_yes">Flash ROM</string>
+	<string name="confirm_flash_rom_no">Quit (recommended)</string>
 </resources>
