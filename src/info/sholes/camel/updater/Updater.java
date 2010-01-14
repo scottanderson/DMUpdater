@@ -127,10 +127,10 @@ public class Updater extends Activity {
 				.setMessage(getString(R.string.reboot_recovery))
 				.setCancelable(false)
 				.setPositiveButton(
-						"OK",
+						"Reboot",
 						new OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
-								System.exit(1);
+								reboot_recovery();
 							}
 						}
 				)
@@ -242,10 +242,10 @@ public class Updater extends Activity {
 			} else {
 				addText(command + " = " + current_md5);
 				new AlertDialog.Builder(this)
-				.setMessage("Your recovery image needs to be updated. This can be done for you, but it has not yet been tested, and it might not work.")
+				.setMessage(R.string.confirm_flash_recovery)
 				.setCancelable(false)
 				.setPositiveButton(
-						"I understand the risk",
+						R.string.confirm_flash_recovery_yes,
 						new OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
 								confirmFlashRecovery();
@@ -253,7 +253,7 @@ public class Updater extends Activity {
 						}
 				)
 				.setNegativeButton(
-						"Quit (recommended)",
+						R.string.confirm_flash_recovery_no,
 						new OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
 								System.exit(1);
@@ -272,10 +272,10 @@ public class Updater extends Activity {
 	private void confirmFlashRecovery() {
 		// Double-check that they are sure
 		new AlertDialog.Builder(this)
-		.setMessage("Are you really, really sure? This definitely will void your warranty, and probably will break your recovery mode.")
+		.setMessage(R.string.confirm_flash_recovery_2)
 		.setCancelable(false)
 		.setPositiveButton(
-				"Turn back now (recommended)",
+				R.string.confirm_flash_recovery_2_no,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						System.exit(1);
@@ -283,7 +283,7 @@ public class Updater extends Activity {
 				}
 		)
 		.setNegativeButton(
-				"Flash recovery image",
+				R.string.confirm_flash_recovery_2_yes,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						confirmedFlashRecovery();
@@ -350,10 +350,18 @@ public class Updater extends Activity {
 
 	private void doRomInstall() {
 		new AlertDialog.Builder(this)
-		.setMessage("We're ready to flash the ROM. This has not yet been implemented.")
+		.setMessage(R.string.confirm_flash_rom)
 		.setCancelable(false)
 		.setPositiveButton(
-				"OK",
+				R.string.confirm_flash_rom_yes,
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						confirmedRomInstall();
+					}
+				}
+		)
+		.setNegativeButton(
+				R.string.confirm_flash_rom_no,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						System.exit(1);
@@ -361,6 +369,23 @@ public class Updater extends Activity {
 				}
 		)
 		.show();
+	}
+
+	private void confirmedRomInstall() {
+		try {
+			SuperUser.oneShot("echo -n \"--install_tgz SDCARD:sholes.rom.tgz\" > /cache/recovery/command");
+			reboot_recovery();
+		} catch(Exception e) {
+			showException(e);
+		}
+	}
+
+	private void reboot_recovery() {
+		try {
+			SuperUser.oneShot("/system/bin/reboot recovery");
+		} catch (Exception e) {
+			showException(e);
+		}
 	}
 
 	protected void showException(Exception ex) {
