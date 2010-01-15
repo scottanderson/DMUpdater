@@ -42,10 +42,12 @@ public class DownloadHelper {
 	
 	class RomDescriptor {
 		public final String name;
+		public final String dispid;
 		public final String url;
 		public final String md5;
-		private RomDescriptor(String name, String url, String md5) {
+		private RomDescriptor(String name, String dispid, String url, String md5) {
 			this.name = name;
+			this.dispid = dispid;
 			this.url = url;
 			this.md5 = md5;
 		}
@@ -99,9 +101,10 @@ public class DownloadHelper {
 		
 		for(XMLElementDecorator rom : xed.getChild("roms").getChildren("rom")) {
 			String name = rom.getAttribute("name");
+			String dispid = rom.getAttribute("dispid");
 			String url = rom.getChild("url").getString();
 			String md5 = rom.getChild("md5").getString();
-			roms.add(new RomDescriptor(name, url, md5));
+			roms.add(new RomDescriptor(name, dispid, url, md5));
 		}
 		
 		return roms;

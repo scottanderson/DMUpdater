@@ -25,6 +25,7 @@ public class Updater extends Activity {
 	private File update_zip = null;
 	private File flash_image = null;
 	private File recovery_image = null;
+	private RomDescriptor selected_rom = null;
 	private File rom_tgz = null;
 
 	/** Called when the activity is first created. */
@@ -39,7 +40,7 @@ public class Updater extends Activity {
 			}
 		});
 		setContentView(R.layout.main);
-		
+
 		try {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
@@ -49,14 +50,13 @@ public class Updater extends Activity {
 			showException(e);
 			return;
 		}
-		
+
 		dh = new DownloadHelper(this);
 
 		update_zip = new File("/sdcard/update.zip");
 		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
-		rom_tgz = new File("/sdcard/sholes.rom.tgz");
 
 		boolean rooted = new File("/system/bin/su").exists();
 		if(rooted) {
@@ -111,14 +111,8 @@ public class Updater extends Activity {
 		case RECOVERY_IMAGE_DOWNLOAD:
 			doRecoveryImageDownload();
 			return;
-		case FLASH_RECOVERY:
-			doFlashRecovery();
-			return;
 		case ROM_DOWNLOAD:
 			doRomDownload();
-			return;
-		case ROM_INSTALL:
-			doRomInstall();
 			return;
 		default:
 			addText("Unknown callback: " + c.name());
@@ -153,7 +147,7 @@ public class Updater extends Activity {
 				// Wait for the callback
 				return;
 			}
-			
+
 			Runtime.getRuntime().exec("chmod 755 " + flash_image.getAbsolutePath());
 		} catch(Exception e) {
 			showException(e);
@@ -192,7 +186,7 @@ public class Updater extends Activity {
 
 			if(expected_md5.equals(current_md5)) {
 				dh.resetDownloadAttempts();
-				doRomDownload();
+				showRomMenu();
 				return;
 			} else {
 				addText(command + " = " + current_md5);
@@ -272,33 +266,77 @@ public class Updater extends Activity {
 		doFlashRecovery();
 	}
 
-	private void doRomDownload() {
+	private void showRomMenu() {
 		List<RomDescriptor> roms = dh.getRoms();
-		
+
 		if(roms.size() == 0) {
 			addText("No roms available!");
+		} else if(roms.size() > 1) {
+			addText("Multiple roms to choose from...display a menu here");
+			selectRom(roms.get(roms.size()-1));
+		} else {
+			selectRom(roms.get(0));
+		}
+	}
+
+	private void selectRom(RomDescriptor rom) {
+		selected_rom = rom;
+		String url = rom.url;
+		rom_tgz = new File("/sdcard/" + url.substring(url.lastIndexOf('/')+1));
+
+		String tgz = rom_tgz.getAbsolutePath();
+		final String rom_tar = tgz.substring(0, tgz.length() - 3) + "tar";
+		if(!rom_tgz.exists() && new File(rom_tar).exists()) {
+			new AlertDialog.Builder(this)
+			.setMessage("Found " + rom_tar + "; we probably shouldnt download the tgz again")
+			.setCancelable(false)
+			.setPositiveButton(
+					"Download tgz",
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							doRomDownload();
+						}
+					}
+			)
+			.setNeutralButton(
+					"Flash tar",
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							doRomInstall(new File(rom_tar));
+						}
+					}
+			)
+			.setNegativeButton(
+					"Quit",
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							System.exit(1);
+						}
+					}
+			)
+			.show();
 			return;
 		}
-		
-		if(roms.size() > 1)
-			addText("Multiple roms to choose from...display a menu here");
-		
+
+		doRomDownload();
+	}
+
+	private void doRomDownload() {
 		try {
-			File f = dh.downloadRom(roms.get(0), rom_tgz);
+			File f = dh.downloadRom(selected_rom, rom_tgz);
 			if(f == null) {
 				// Wait for the callback
 				return;
 			}
-			
-			dh.resetDownloadAttempts();
-			doRomInstall();
+
+			doRomInstall(f);
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
 	}
 
-	private void doRomInstall() {
+	private void doRomInstall(final File rom) {
 		// ROM is downloaded, ready to ask user about options
 		new AlertDialog.Builder(this)
 		.setMessage(R.string.confirm_flash_rom)
@@ -307,7 +345,7 @@ public class Updater extends Activity {
 				R.string.confirm_flash_rom_yes,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						confirmedRomInstall();
+						confirmedRomInstall(rom);
 					}
 				}
 		)
@@ -322,8 +360,8 @@ public class Updater extends Activity {
 		.show();
 	}
 
-	private void confirmedRomInstall() {
-		String path = rom_tgz.getAbsolutePath();
+	private void confirmedRomInstall(File rom) {
+		String path = rom.getAbsolutePath();
 		if(!path.startsWith("/sdcard/")) {
 			addText(path + " should be on /sdcard...what happened?");
 			return;

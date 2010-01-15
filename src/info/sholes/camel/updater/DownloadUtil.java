@@ -37,7 +37,7 @@ public class DownloadUtil {
 		downloadFile(fout, url.toString(), uc.getInputStream(), length, false, callback);
 	}
 
-	private void downloadFile(File fout, String from, InputStream is, int filelen, boolean append, final Callback callback) throws Exception {
+	private void downloadFile(final File fout, String from, InputStream is, int filelen, boolean append, final Callback callback) throws Exception {
 		if(!append && fout.exists())
 			fout.delete();
 		final OutputStream os = new FileOutputStream(fout, append);
@@ -74,6 +74,7 @@ public class DownloadUtil {
 						u.addText("Download cancelled.");
 						dt.cancel(true);
 						pd.hide();
+						fout.delete();
 					}});
 		pd.setCancelable(false);
 		pd.show();
