@@ -10,6 +10,8 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetFileDescriptor;
 
 public class DownloadUtil {
@@ -41,18 +43,7 @@ public class DownloadUtil {
 		final OutputStream os = new FileOutputStream(fout, append);
 
 		final ProgressDialog pd = new ProgressDialog(u);
-		pd.setTitle(append ? "Appending..." : "Downloading...");
-		pd.setMessage("From " + from + "\nTo " + fout.toString());
-		if(filelen == 0) {
-			pd.setIndeterminate(true);
-		} else {
-			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			pd.setMax(filelen);
-		}
-		pd.setCancelable(false);
-		pd.show();
-
-		new DownloadTask() {
+		final DownloadTask dt = new DownloadTask() {
 			@Override
 			protected void onProgressUpdate(Integer... values) {
 				for(Integer i : values)
@@ -68,7 +59,26 @@ public class DownloadUtil {
 					u.showException(result);
 				}
 			}
-		}.execute(is, os);
+		};
+		
+		pd.setTitle(append ? "Appending..." : "Downloading...");
+		pd.setMessage("From " + from + "\nTo " + fout.toString());
+		if(filelen == 0) {
+			pd.setIndeterminate(true);
+		} else {
+			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			pd.setMax(filelen);
+		}
+		pd.setButton( "Cancel", new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						u.addText("Download cancelled.");
+						dt.cancel(true);
+						pd.hide();
+					}});
+		pd.setCancelable(false);
+		pd.show();
+
+		dt.execute(is, os);
 	}
 	
 	public static String md5(File f) throws Exception {

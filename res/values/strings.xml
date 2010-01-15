@@ -6,17 +6,10 @@
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>
 	<string name="not_rooted_neg">Quit (recommended)</string>
-	<string name="url_signed">http://www.sholes.info/wp-content/uploads/2009/12/signed-voles-ESD56-from-ESD20.84263456.zip</string>
-	<string name="md5_signed">3af35446905040a3123ec09195299596</string>
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
-	<string name="md5_exploit">cf653352967253e99d967498ffd9ce69</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
 	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
 	
-	<string name="url_flash_image">http://sp.sholes.info/flash_image</string>
-	<string name="md5_flash_image">8d99ef03593ca1143880b37c71376661</string>
-	<string name="url_recovery_image">http://www.sholes.info/downloads/sp/recovery-0.99.2b.img</string>
-	<string name="md5_recovery_image">e960884111fcf9ffcfc7c7ec11c75987</string>
 	<string name="confirm_flash_recovery">Your recovery image needs to be updated. Continuing will void your warranty!</string>
 	<string name="confirm_flash_recovery_yes">I understand the risk</string>
 	<string name="confirm_flash_recovery_no">Quit (recommended)</string>
@@ -24,8 +17,6 @@
 	<string name="confirm_flash_recovery_2_yes">Flash recovery image</string>
 	<string name="confirm_flash_recovery_2_no">Quit (recommended)</string>
 	
-	<string name="url_rom">http://www.sholes.info/downloads/sp/sholes_info-1.0.1.rom.tgz</string>
-	<string name="md5_rom">50373feb7a4b8f55c53631d1eb28ed16</string>
 	<string name="confirm_flash_rom">We are ready to flash the ROM.</string>
 	<string name="confirm_flash_rom_yes">Flash ROM</string>
 	<string name="confirm_flash_rom_no">Quit (recommended)</string>

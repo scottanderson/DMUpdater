@@ -1,10 +1,14 @@
 package info.sholes.camel.updater;
 
+import info.sholes.camel.updater.DownloadHelper.Downloadable;
+import info.sholes.camel.updater.DownloadHelper.RomDescriptor;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URL;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.List;
 import java.util.Properties;
 
 import android.app.Activity;
@@ -17,8 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Updater extends Activity {
-	private DownloadUtil du = null;
-	private int download_attempts = 0;
+	private DownloadHelper dh = null;
 	private File update_zip = null;
 	private File flash_image = null;
 	private File recovery_image = null;
@@ -28,6 +31,13 @@ public class Updater extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			public void uncaughtException(Thread thread, Throwable ex) {
+				addText("Whoa! Uncaught exception!");
+				showException(ex);
+				ex.printStackTrace();
+			}
+		});
 		setContentView(R.layout.main);
 		
 		try {
@@ -39,8 +49,9 @@ public class Updater extends Activity {
 			showException(e);
 			return;
 		}
+		
+		dh = new DownloadHelper(this);
 
-		du = new DownloadUtil(this);
 		update_zip = new File("/sdcard/update.zip");
 		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
@@ -69,7 +80,7 @@ public class Updater extends Activity {
 					R.string.not_rooted_pos,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							download_attempts = 0;
+							dh.resetDownloadAttempts();
 							doRoot();
 						}
 					}
@@ -84,7 +95,7 @@ public class Updater extends Activity {
 			)
 			.show();
 		} else {
-			download_attempts = 0;
+			dh.resetDownloadAttempts();
 			doFlashImageDownload();
 		}
 	}
@@ -116,118 +127,56 @@ public class Updater extends Activity {
 	}
 
 	private void doRoot() {
-		while(update_zip.exists()) {
-			String md5;
-			try {
-				md5 = DownloadUtil.md5(update_zip);
-			} catch (Exception e) {
-				// Re-download
-				break;
-			}
-			if(getString(R.string.md5_signed).equals(md5)) {
-				// Got signed-voles...
-				addText(getString(R.string.add_exploit));
-				try {
-					du.downloadFile(update_zip, "droid-superuser.zip", true, Callback.ROOT);
-				} catch (Exception e) {
-					showException(e);
-				}
-				return;
-			} else if(getString(R.string.md5_exploit).equals(md5)) {
-				addText(getString(R.string.exploit_ready));
-				// Display a pop-up explaining how to root
-				new AlertDialog.Builder(this)
-				.setMessage(R.string.reboot_recovery)
-				.setCancelable(false)
-				.show();
-				return;
-			} else {
-				addText("Unknown MD5: " + md5);
-				// Fall-through to re-download
-				break;
-			}
-		}
-
 		try {
-			download_attempts++;
-			if(download_attempts >= 3) {
-				addText("It's hopeless; giving up");
+			File f = dh.downloadFile(Downloadable.ROOT, update_zip, Callback.ROOT);
+			if(f == null) {
+				// Wait for the callback
 				return;
 			}
-			du.downloadFile(update_zip, new URL(getString(R.string.url_signed)), Callback.ROOT);
 		} catch(Exception e) {
 			showException(e);
+			return;
 		}
+
+		addText(getString(R.string.exploit_ready));
+		// Display a pop-up explaining how to root
+		new AlertDialog.Builder(this)
+		.setMessage(R.string.reboot_recovery)
+		.setCancelable(false)
+		.show();
 	}
 
 	private void doFlashImageDownload() {
-		if(flash_image.exists()) {
-			try {
-				String md5 = DownloadUtil.md5(flash_image);
-				if(getString(R.string.md5_flash_image).equals(md5)) {
-					try {
-						Runtime.getRuntime().exec("chmod 755 " + flash_image.getAbsolutePath());
-					} catch(Exception e) {
-						showException(e);
-						return;
-					}
-
-					download_attempts = 0;
-					doRecoveryImageDownload();
-					return;
-				} else {
-					addText(flash_image.getAbsolutePath() + " = " + md5);
-				}
-			} catch (Exception e) {
-				showException(e);
-				return;
-			}
-		} else {
-			addText(flash_image.getAbsolutePath() + " doesn't exist");
-		}
-
 		try {
-			download_attempts++;
-			if(download_attempts >= 3) {
-				addText("It's hopeless; giving up");
+			File f = dh.downloadFile(Downloadable.FLASH_IMAGE, flash_image, Callback.FLASH_IMAGE_DOWNLOAD);
+			if(f == null) {
+				// Wait for the callback
 				return;
 			}
-			du.downloadFile(flash_image, new URL(getString(R.string.url_flash_image)), Callback.FLASH_IMAGE_DOWNLOAD);
-		} catch (Exception e) {
+			
+			Runtime.getRuntime().exec("chmod 755 " + flash_image.getAbsolutePath());
+		} catch(Exception e) {
 			showException(e);
+			return;
 		}
+
+		dh.resetDownloadAttempts();
+		doRecoveryImageDownload();
 	}
 
 	private void doRecoveryImageDownload() {
-		// We have flash_image, download the recovery image
-		if(recovery_image.exists()) {
-			try {
-				String md5 = DownloadUtil.md5(recovery_image);
-				if(getString(R.string.md5_recovery_image).equals(md5)) {
-					download_attempts = 0;
-					doFlashRecovery();
-					return;
-				} else {
-					addText(recovery_image.getAbsolutePath() + " = " + md5);
-				}
-			} catch (Exception e) {
-				showException(e);
+		try {
+			File f = dh.downloadFile(Downloadable.RECOVERY_IMAGE, recovery_image, Callback.RECOVERY_IMAGE_DOWNLOAD);
+			if(f == null) {
+				// Wait for the callback
 				return;
 			}
-		} else {
-			addText(recovery_image.getAbsolutePath() + " doesn't exist");
+		} catch(Exception e) {
+			showException(e);
+			return;
 		}
 
-		try {
-			download_attempts++;
-			if(download_attempts >= 3) {
-				addText("It's hopeless; giving up");
-				return;
-			}
-			du.downloadFile(recovery_image, new URL(getString(R.string.url_recovery_image)), Callback.RECOVERY_IMAGE_DOWNLOAD);
-		} catch (Exception e) {
-			showException(e);
-		}
+		doFlashRecovery();
 	}
 
 	private void doFlashRecovery() {
@@ -239,9 +188,10 @@ public class Updater extends Activity {
 			// TODO: validate length <= the block size
 			String command = "dd if=/dev/block/mtdblock3 count=1 bs=" + length;
 			String current_md5 = SuperUser.oneShotMd5(command, length);
+			String expected_md5 = Downloadable.RECOVERY_IMAGE.md5;
 
-			if(getString(R.string.md5_recovery_image).equals(current_md5)) {
-				download_attempts = 0;
+			if(expected_md5.equals(current_md5)) {
+				dh.resetDownloadAttempts();
 				doRomDownload();
 				return;
 			} else {
@@ -323,33 +273,28 @@ public class Updater extends Activity {
 	}
 
 	private void doRomDownload() {
-		if(rom_tgz.exists()) {
-			try {
-				String md5 = DownloadUtil.md5(rom_tgz);
-				if(getString(R.string.md5_rom).equals(md5)) {
-					download_attempts = 0;
-					doRomInstall();
-					return;
-				} else {
-					addText(rom_tgz.getAbsolutePath() + " = " + md5);
-				}
-			} catch (Exception e) {
-				showException(e);
-				return;
-			}
-		} else {
-			addText(rom_tgz.getAbsolutePath() + " doesn't exist");
+		List<RomDescriptor> roms = dh.getRoms();
+		
+		if(roms.size() == 0) {
+			addText("No roms available!");
+			return;
 		}
-
+		
+		if(roms.size() > 1)
+			addText("Multiple roms to choose from...display a menu here");
+		
 		try {
-			download_attempts++;
-			if(download_attempts >= 3) {
-				addText("It's hopeless; giving up");
+			File f = dh.downloadRom(roms.get(0), rom_tgz);
+			if(f == null) {
+				// Wait for the callback
 				return;
 			}
-			du.downloadFile(rom_tgz, new URL(getString(R.string.url_rom)), Callback.ROM_DOWNLOAD);
-		} catch (Exception e) {
+			
+			dh.resetDownloadAttempts();
+			doRomInstall();
+		} catch(Exception e) {
 			showException(e);
+			return;
 		}
 	}
 
@@ -393,7 +338,7 @@ public class Updater extends Activity {
 		}
 	}
 
-	protected void showException(Exception ex) {
+	protected void showException(Throwable ex) {
 		StringWriter sw = new StringWriter();
 		ex.printStackTrace(new PrintWriter(sw));
 		addText(sw.toString());
