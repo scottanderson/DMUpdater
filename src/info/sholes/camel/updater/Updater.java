@@ -46,12 +46,12 @@ public class Updater extends Activity {
 			p.load(new FileInputStream("/system/build.prop"));
 			addText("Current ROM: " + p.getProperty("ro.product.model"));
 			addText("Version: " + p.getProperty("ro.build.display.id"));
+
+			dh = new DownloadHelper(this);
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
-
-		dh = new DownloadHelper(this);
 
 		update_zip = new File("/sdcard/update.zip");
 		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();

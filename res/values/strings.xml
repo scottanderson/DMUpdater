@@ -3,12 +3,14 @@
 	<string name="app_label">SM Updater</string>
 	<string name="activity_label">SholesMod Updater</string>
 	
+    <string name="url_update">http://sp.sholes.info/smupdater.xml</string>
+	
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>
 	<string name="not_rooted_neg">Quit (recommended)</string>
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
-	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select install sdcard update.zip from the menu.</string>
+	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on, and then select "apply sdcard:update.zip" from the menu.</string>
 	
 	<string name="confirm_flash_recovery">Your recovery image needs to be updated. Continuing will void your warranty!</string>
 	<string name="confirm_flash_recovery_yes">I understand the risk</string>

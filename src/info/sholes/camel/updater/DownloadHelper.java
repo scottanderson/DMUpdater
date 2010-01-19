@@ -5,11 +5,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
+
 public class DownloadHelper {
 	private static XMLElementDecorator xed = null;
-	private static XMLElementDecorator getFileXml(String type) throws Exception {
+	private static void init(Context ctx) throws Exception {
 		if(xed == null)
-			xed = XMLElementDecorator.parse("http://sp.sholes.info/smupdater.xml").getChild("smupdater");
+			xed = XMLElementDecorator.parse(ctx.getString(R.string.url_update)).getChild("smupdater");
+	}
+	private static XMLElementDecorator getFileXml(String type) throws Exception {
 		for(XMLElementDecorator file : xed.getChild("files").getChildren("file")) {
 			if(!type.equals(file.getAttribute("type")))
 				continue;
@@ -57,7 +61,8 @@ public class DownloadHelper {
 	private final DownloadUtil du;
 	private int download_attempts = 0;
 	
-	public DownloadHelper(Updater u) {
+	public DownloadHelper(Updater u) throws Exception {
+		init(u);
 		this.u = u;
 		du = new DownloadUtil(u);
 	}
