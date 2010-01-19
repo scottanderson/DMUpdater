@@ -182,7 +182,7 @@ public class Updater extends Activity {
 			// TODO: validate length <= the block size
 			String command = "dd if=/dev/block/mtdblock3 count=1 bs=" + length;
 			String current_md5 = SuperUser.oneShotMd5(command, length);
-			String expected_md5 = Downloadable.RECOVERY_IMAGE.md5;
+			String expected_md5 = Downloadable.RECOVERY_IMAGE.getMd5();
 
 			if(expected_md5.equals(current_md5)) {
 				dh.resetDownloadAttempts();

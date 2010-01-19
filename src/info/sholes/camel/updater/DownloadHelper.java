@@ -27,19 +27,32 @@ public class DownloadHelper {
 		FLASH_IMAGE("flash_image"),
 		RECOVERY_IMAGE("recovery");
 		
-		public final String url;
-		public final String md5;
+		private final String type;
+		private String url = null;
+		private String md5 = null;
+		
+		private XMLElementDecorator xed = null;
 		
 		Downloadable(String type) {
-			XMLElementDecorator xed;
-			try {
+			this.type = type;
+		}
+		
+		public String getUrl() throws Exception {
+			if(url != null)
+				return url;
+			if(xed == null)
 				xed = getFileXml(type);
-			} catch (Exception e) {
-				// HACK: prevent the compiler from complaining about this not being allowed
-				throw new RuntimeException(e);
-			}
 			url = xed.getChild("url").getString();
+			return url;
+		}
+		
+		public String getMd5() throws Exception {
+			if(md5 != null)
+				return md5;
+			if(xed == null)
+				xed = getFileXml(type);
 			md5 = xed.getChild("md5").getString();
+			return md5;
 		}
 		
 	}
@@ -72,7 +85,7 @@ public class DownloadHelper {
 	}
 	
 	public File downloadFile(Downloadable which, File where, Callback cb) throws Exception {
-		return downloadFile(which.url, which.md5, where, cb);
+		return downloadFile(which.getUrl(), which.getMd5(), where, cb);
 	}
 	
 	private File downloadFile(String url, String expect_md5, File where, Callback cb) throws Exception {
