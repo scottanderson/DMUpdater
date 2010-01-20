@@ -8,6 +8,7 @@
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>
 	<string name="not_rooted_neg">Quit (recommended)</string>
+	
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
 	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on. When the MOTO logo changes to recovery, hold the volume up and camera keys to access the menu, and select "apply sdcard:update.zip" with the d-pad. When it finishes, reboot.</string>
@@ -15,6 +16,7 @@
 	<string name="confirm_flash_recovery">Your recovery image needs to be updated. Continuing will void your warranty!</string>
 	<string name="confirm_flash_recovery_yes">I understand the risk</string>
 	<string name="confirm_flash_recovery_no">Quit (recommended)</string>
+	
 	<string name="confirm_flash_recovery_2">Are you really, really sure? This definitely will void your warranty, and probably will break your recovery mode.</string>
 	<string name="confirm_flash_recovery_2_yes">Flash recovery image</string>
 	<string name="confirm_flash_recovery_2_no">Quit (recommended)</string>
@@ -22,4 +24,13 @@
 	<string name="confirm_flash_rom">We are ready to flash the ROM.</string>
 	<string name="confirm_flash_rom_yes">Flash ROM</string>
 	<string name="confirm_flash_rom_no">Quit (recommended)</string>
+	
+    <string name="rom_menu_no_roms">No ROMs available!</string>
+    <string name="rom_menu">Select a ROM:</string>
+    <string name="rom_menu_pos">Select</string>
+	<string name="rom_menu_neg">Quit (recommended)</string>
+    
+    <string name="select_rom_download_tgz">Download tgz</string>
+    <string name="select_rom_flash_tar">Flash tar</string>
+	<string name="select_rom_neg">Quit (recommended)</string>
 </resources>

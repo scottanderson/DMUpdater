@@ -267,13 +267,49 @@ public class Updater extends Activity {
 	}
 
 	private void showRomMenu() {
-		List<RomDescriptor> roms = dh.getRoms();
+		final List<RomDescriptor> roms = dh.getRoms();
 
 		if(roms.size() == 0) {
-			addText("No roms available!");
+			addText(getString(R.string.rom_menu_no_roms));
 		} else if(roms.size() > 1) {
-			addText("Multiple roms to choose from...display a menu here");
-			selectRom(roms.get(roms.size()-1));
+			String[] romNames = new String[roms.size()];
+			for(int i = 0; i < romNames.length; i++)
+				romNames[i] = roms.get(i).name;
+			selected_rom = roms.get(roms.size()-1);
+			
+			new AlertDialog.Builder(this)
+			.setTitle(R.string.rom_menu)
+			.setCancelable(false)
+			.setSingleChoiceItems(
+					romNames,
+					roms.indexOf(selected_rom),
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							selected_rom = roms.get(which);
+						}
+					}
+			)
+			.setPositiveButton(
+					R.string.rom_menu_pos,
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							if(selected_rom != null)
+								selectRom(selected_rom);
+							else
+								showRomMenu();
+						}
+					}
+			)
+			.setNegativeButton(
+					R.string.rom_menu_neg,
+					new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							System.exit(1);
+						}
+					}
+			)
+			.show();
 		} else {
 			selectRom(roms.get(0));
 		}
@@ -291,7 +327,7 @@ public class Updater extends Activity {
 			.setMessage("Found " + rom_tar + "; we probably shouldnt download the tgz again")
 			.setCancelable(false)
 			.setPositiveButton(
-					"Download tgz",
+					R.string.select_rom_download_tgz,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							doRomDownload();
@@ -299,7 +335,7 @@ public class Updater extends Activity {
 					}
 			)
 			.setNeutralButton(
-					"Flash tar",
+					R.string.select_rom_flash_tar,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							doRomInstall(new File(rom_tar));
@@ -307,7 +343,7 @@ public class Updater extends Activity {
 					}
 			)
 			.setNegativeButton(
-					"Quit",
+					R.string.select_rom_neg,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							System.exit(1);
