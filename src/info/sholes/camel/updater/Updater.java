@@ -276,7 +276,7 @@ public class Updater extends Activity {
 			for(int i = 0; i < romNames.length; i++)
 				romNames[i] = roms.get(i).name;
 			selected_rom = roms.get(roms.size()-1);
-			
+
 			new AlertDialog.Builder(this)
 			.setTitle(R.string.rom_menu)
 			.setCancelable(false)
@@ -397,15 +397,8 @@ public class Updater extends Activity {
 	}
 
 	private void confirmedRomInstall(File rom) {
-		String path = rom.getAbsolutePath();
-		if(!path.startsWith("/sdcard/")) {
-			addText(path + " should be on /sdcard...what happened?");
-			return;
-		}
-		path = "SDCARD:" + path.substring(8);
-
 		try {
-			SuperUser.oneShot("echo -n \"--install_tgz " + path + "\" > /cache/recovery/command");
+			SuperUser.oneShot("echo -en \"--install_tgz\\n" + rom.getAbsolutePath() + "\" > /cache/recovery/command");
 			SuperUser.oneShot("/system/bin/reboot recovery");
 		} catch(Exception e) {
 			showException(e);
