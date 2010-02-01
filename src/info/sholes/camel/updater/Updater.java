@@ -398,7 +398,8 @@ public class Updater extends Activity {
 
 	private void confirmedRomInstall(File rom) {
 		try {
-			SuperUser.oneShot("echo -en \"--install_tgz\\n" + rom.getAbsolutePath() + "\" > /cache/recovery/command");
+			SuperUser.oneShot("echo \"--install_tgz\" > /cache/recovery/command");
+			SuperUser.oneShot("echo -n \"" + rom.getAbsolutePath() + "\" >> /cache/recovery/command");
 			SuperUser.oneShot("/system/bin/reboot recovery");
 		} catch(Exception e) {
 			showException(e);
