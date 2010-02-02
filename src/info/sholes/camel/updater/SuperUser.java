@@ -24,9 +24,11 @@ public class SuperUser {
 		String output = null;
 		try {
 			String line;
-			output = su.out.readLine();
 			while (su.out.ready() && (line = su.out.readLine()) != null) {
-				output += "\n" + line;
+				if(output == null)
+					output = line;
+				else
+					output += "\n" + line;
 			}
 		} catch (IOException e) {
 			// It seems IOException is thrown when it reaches EOF.
@@ -57,9 +59,12 @@ public class SuperUser {
 
 	private void checkErr() throws Exception {
 		String line;
-		String error = err.readLine();
+		String error = null;
 		while (err.ready() && (line = err.readLine()) != null) {
-			error += "\n" + line;
+			if(error == null)
+				error = line;
+			else
+				error += "\n" + line;
 		}
 		if((error != null) && (error.length() > 0))
 			throw new Exception(error);
