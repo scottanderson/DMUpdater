@@ -146,7 +146,7 @@ public class DownloadHelper {
 
 		// Update available!
 		final String name = vc.getChild("name").getString();
-		final String url = vc.getChild("url").getString();
+		final String uri = vc.getChild("uri").getString();
 		new AlertDialog.Builder(u)
 		.setTitle("Update available")
 		.setMessage("Version " + name + " of " + u.getString(R.string.app_label) + " is available")
@@ -154,7 +154,8 @@ public class DownloadHelper {
 				"Install",
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						u.sendBroadcast(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+						u.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
+						System.exit(1);
 					}
 				}
 		)
