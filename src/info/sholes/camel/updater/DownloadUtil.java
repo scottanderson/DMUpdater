@@ -13,6 +13,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetFileDescriptor;
+import android.text.format.Formatter;
 
 public class DownloadUtil {
 	
@@ -48,6 +49,10 @@ public class DownloadUtil {
 			protected void onProgressUpdate(Integer... values) {
 				for(Integer i : values)
 					pd.incrementProgressBy(i.intValue());
+				
+				String c = Formatter.formatFileSize(u, pd.getProgress());
+				String m = Formatter.formatFileSize(u, pd.getMax());
+				pd.setMessage(fout.getName() + "\n" + c + "/" + m);
 			}
 
 			@Override
@@ -61,8 +66,8 @@ public class DownloadUtil {
 			}
 		};
 		
-		pd.setTitle(append ? "Appending..." : "Downloading...");
-		pd.setMessage("From " + from + "\nTo " + fout.toString());
+		pd.setTitle(append ? "Appending" : "Downloading");
+		pd.setMessage(fout.getName());
 		if(filelen == 0) {
 			pd.setIndeterminate(true);
 		} else {
