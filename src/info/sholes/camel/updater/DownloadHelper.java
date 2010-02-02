@@ -5,7 +5,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
+import android.content.pm.PackageInfo;
+import android.net.Uri;
 
 public class DownloadHelper {
 	private static XMLElementDecorator xed = null;
@@ -21,22 +27,22 @@ public class DownloadHelper {
 		}
 		return null;
 	}
-	
+
 	enum Downloadable {
 		ROOT("root"),
 		FLASH_IMAGE("flash_image"),
 		RECOVERY_IMAGE("recovery");
-		
+
 		private final String type;
 		private String url = null;
 		private String md5 = null;
-		
+
 		private XMLElementDecorator xed = null;
-		
+
 		Downloadable(String type) {
 			this.type = type;
 		}
-		
+
 		public String getUrl() throws Exception {
 			if(url != null)
 				return url;
@@ -45,7 +51,7 @@ public class DownloadHelper {
 			url = xed.getChild("url").getString();
 			return url;
 		}
-		
+
 		public String getMd5() throws Exception {
 			if(md5 != null)
 				return md5;
@@ -54,9 +60,9 @@ public class DownloadHelper {
 			md5 = xed.getChild("md5").getString();
 			return md5;
 		}
-		
+
 	}
-	
+
 	class RomDescriptor {
 		public final String name;
 		public final String dispid;
@@ -69,25 +75,25 @@ public class DownloadHelper {
 			this.md5 = md5;
 		}
 	}
-	
+
 	private final Updater u;
 	private final DownloadUtil du;
 	private int download_attempts = 0;
-	
+
 	public DownloadHelper(Updater u) throws Exception {
 		init(u);
 		this.u = u;
 		du = new DownloadUtil(u);
 	}
-	
+
 	public void resetDownloadAttempts() {
 		download_attempts = 0;
 	}
-	
+
 	public File downloadFile(Downloadable which, File where, Callback cb) throws Exception {
 		return downloadFile(which.getUrl(), which.getMd5(), where, cb);
 	}
-	
+
 	private File downloadFile(String url, String expect_md5, File where, Callback cb) throws Exception {
 		while(where.exists()) {
 			String actual_md5;
@@ -113,10 +119,10 @@ public class DownloadHelper {
 		du.downloadFile(where, new URL(url), cb);
 		return null;
 	}
-	
+
 	public List<RomDescriptor> getRoms() {
 		List<RomDescriptor> roms = new ArrayList<RomDescriptor>();
-		
+
 		for(XMLElementDecorator rom : xed.getChild("roms").getChildren("rom")) {
 			String name = rom.getAttribute("name");
 			String dispid = rom.getAttribute("dispid");
@@ -124,12 +130,45 @@ public class DownloadHelper {
 			String md5 = rom.getChild("md5").getString();
 			roms.add(new RomDescriptor(name, dispid, url, md5));
 		}
-		
+
 		return roms;
 	}
-	
+
 	public File downloadRom(RomDescriptor rd, File rom_tgz) throws Exception {
 		return downloadFile(rd.url, rd.md5, rom_tgz, Callback.ROM_DOWNLOAD);
+	}
+
+	public boolean checkVersion(PackageInfo pi) {
+		XMLElementDecorator vc = xed.getChild("version_check");
+		int code = vc.getChild("code").getInt().intValue();
+		if(code <= pi.versionCode)
+			return false;
+
+		// Update available!
+		final String name = vc.getChild("name").getString();
+		final String url = vc.getChild("url").getString();
+		new AlertDialog.Builder(u)
+		.setTitle("Update available")
+		.setMessage("Version " + name + " of " + u.getString(R.string.app_label) + " is available")
+		.setPositiveButton(
+				"Install",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						u.sendBroadcast(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+					}
+				}
+		)
+		.setNegativeButton(
+				"Quit",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						System.exit(1);
+					}
+				}
+		)
+		.show();
+
+		return true;
 	}
 
 }

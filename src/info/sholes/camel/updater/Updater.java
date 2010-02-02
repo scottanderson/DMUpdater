@@ -16,6 +16,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -48,6 +50,12 @@ public class Updater extends Activity {
 			addText("Version: " + p.getProperty("ro.build.display.id"));
 
 			dh = new DownloadHelper(this);
+
+			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
+			addText("Version Code: " + pi.versionCode);
+			addText("Version Name: " + pi.versionName);
+			if(dh.checkVersion(pi))
+				return;
 		} catch(Exception e) {
 			showException(e);
 			return;
