@@ -4,6 +4,9 @@
 	<string name="activity_label">SholesMod Updater</string>
 	
     <string name="url_update">http://downloads.sholes.info/smupdater.xml</string>
+	<string name="update_available">Update available</string>
+    <string name="update_available_pos">Install</string>
+    <string name="update_available_neg">Quit</string>
 	
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>

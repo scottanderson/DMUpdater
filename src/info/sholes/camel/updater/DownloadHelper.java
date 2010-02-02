@@ -148,10 +148,10 @@ public class DownloadHelper {
 		final String name = vc.getChild("name").getString();
 		final String uri = vc.getChild("uri").getString();
 		new AlertDialog.Builder(u)
-		.setTitle("Update available")
+		.setTitle(R.string.update_available)
 		.setMessage("Version " + name + " of " + u.getString(R.string.app_label) + " is available")
 		.setPositiveButton(
-				"Install",
+				R.string.update_available_pos,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						u.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
@@ -160,7 +160,7 @@ public class DownloadHelper {
 				}
 		)
 		.setNegativeButton(
-				"Quit",
+				R.string.update_available_neg,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						System.exit(1);
