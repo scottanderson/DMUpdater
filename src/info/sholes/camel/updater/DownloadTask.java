@@ -18,7 +18,6 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 
 			while((read = in.read(buf)) > 0) {
 				os.write(buf, 0, read);
-				Thread.yield();
 				publishProgress(new Integer(read));
 			}
 			os.close();
