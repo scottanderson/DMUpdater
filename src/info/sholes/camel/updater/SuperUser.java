@@ -21,11 +21,12 @@ public class SuperUser {
 		su.in.flush();
 		su.p.waitFor();
 
-		String output = "";
+		String output = null;
 		try {
 			String line;
+			output = su.out.readLine();
 			while (su.out.ready() && (line = su.out.readLine()) != null) {
-				output += line + "\n";
+				output += "\n" + line;
 			}
 		} catch (IOException e) {
 			// It seems IOException is thrown when it reaches EOF.
@@ -33,7 +34,7 @@ public class SuperUser {
 		su.checkErr();
 		return output;
 	}
-	
+
 	public static String oneShotMd5(String command, int length) throws Exception {
 		SuperUser su = new SuperUser();
 		su.in.write(command);
@@ -41,7 +42,7 @@ public class SuperUser {
 		su.in.write("exit");
 		su.in.newLine();
 		su.in.flush();
-		
+
 		return DownloadUtil.md5(su.p.getInputStream(), length);
 	}
 
@@ -56,38 +57,11 @@ public class SuperUser {
 
 	private void checkErr() throws Exception {
 		String line;
-		String error = "";
+		String error = err.readLine();
 		while (err.ready() && (line = err.readLine()) != null) {
-			error += line + "\n";
+			error += "\n" + line;
 		}
-		if(error.length() > 0)
+		if((error != null) && (error.length() > 0))
 			throw new Exception(error);
-	}
-
-	public String exec(String command) throws Exception {
-		in.write(command);
-		in.newLine();
-		in.flush();
-
-		long start = System.currentTimeMillis();
-
-		String output = "";
-		try {
-			String line;
-			// wait up to 5 seconds for something to appear
-			while((output.length() == 0) && (System.currentTimeMillis() - start < 5000)) {
-				while (out.ready() && (line = out.readLine()) != null) {
-					output += line + "\n";
-				}
-				Thread.yield();
-				Thread.sleep(10);
-			}
-		} catch (IOException e) {
-			// It seems IOException is thrown when it reaches EOF.
-		}
-
-		checkErr();
-
-		return output;
 	}
 }
