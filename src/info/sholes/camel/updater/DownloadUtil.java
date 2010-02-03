@@ -12,7 +12,6 @@ import java.security.MessageDigest;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.content.res.AssetFileDescriptor;
 import android.text.format.Formatter;
 
 public class DownloadUtil {
@@ -23,11 +22,6 @@ public class DownloadUtil {
 		this.u = u;
 	}
 
-	public void downloadFile(File fout, String asset_filename, boolean append, Callback callback) throws Exception {
-		AssetFileDescriptor fd = u.getAssets().openFd(asset_filename);
-		downloadFile(fout, asset_filename, fd.createInputStream(), (int)fd.getLength(), append, callback);
-	}
-
 	public void downloadFile(File fout, URL url, Callback callback) throws Exception {
 		URLConnection uc = url.openConnection();
 		int length = 0;
@@ -35,13 +29,11 @@ public class DownloadUtil {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
 		u.addText("Downloading " + url.toString());
-		downloadFile(fout, url.toString(), uc.getInputStream(), length, false, callback);
+		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback);
 	}
 
-	private void downloadFile(final File fout, String from, InputStream is, int filelen, boolean append, final Callback callback) throws Exception {
-		if(!append && fout.exists())
-			fout.delete();
-		final OutputStream os = new FileOutputStream(fout, append);
+	private void downloadFile(final File fout, String from, InputStream is, int filelen, final Callback callback) throws Exception {
+		final OutputStream os = new FileOutputStream(fout);
 
 		final ProgressDialog pd = new ProgressDialog(u);
 		final DownloadTask dt = new DownloadTask() {
@@ -79,7 +71,7 @@ public class DownloadUtil {
 			}
 		};
 
-		pd.setTitle(append ? "Appending" : "Downloading");
+		pd.setTitle("Downloading");
 		pd.setMessage(fout.getName());
 		if(filelen == 0) {
 			pd.setIndeterminate(true);
@@ -87,7 +79,7 @@ public class DownloadUtil {
 			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 			pd.setMax(filelen);
 		}
-		pd.setButton( "Cancel", new OnClickListener() {
+		pd.setButton("Cancel", new OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				u.addText("Download cancelled.");
 				dt.cancel(true);
