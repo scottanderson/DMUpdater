@@ -51,8 +51,21 @@ public class DownloadUtil {
 
 				String c = Formatter.formatFileSize(u, pd.getProgress());
 				String m = Formatter.formatFileSize(u, pd.getMax());
-				String bps = Formatter.formatFileSize(u, values[1].intValue()) + "/s (avg)";
-				pd.setMessage(fout.getName() + "\n" + c + "/" + m + "\n" + bps);
+				String bps = Formatter.formatFileSize(u, values[1].intValue()) + "/s";
+				int secondsleft = (pd.getMax() - pd.getProgress()) / values[1].intValue();
+				String timeleft = "";
+				if(secondsleft > 60) {
+					int minutesleft = secondsleft / 60;
+					secondsleft %= 60;
+					if(minutesleft > 60) {
+						int hoursleft = minutesleft / 60;
+						minutesleft %= 60;
+						timeleft += hoursleft + "h ";
+					}
+					timeleft += minutesleft + "m ";
+				}
+				timeleft += secondsleft + "s";
+				pd.setMessage(fout.getName() + "\n" + c + "/" + m + "\n" + bps + "\nETA: " + timeleft);
 			}
 
 			@Override
