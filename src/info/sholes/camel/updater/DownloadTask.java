@@ -17,7 +17,6 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 			int read;
 			int readSinceProgress = 0;
 			long lastupdate = System.currentTimeMillis();
-			long downloadStarted = System.currentTimeMillis();
 			float bps_avg = 0;
 			int avg_count = 0;
 
@@ -25,15 +24,15 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 				os.write(buf, 0, read);
 				readSinceProgress += read;
 
-				if(readSinceProgress < 4096)
-					continue;
-
 				long now = System.currentTimeMillis();
-				if(now - lastupdate > 100) {
+				if(now - lastupdate > 250) {
+					// Calculate instantaneous bps
 					float bps = readSinceProgress * 1000 / (now - lastupdate);
+					// Average it out
 					bps_avg = ((bps_avg * avg_count) + bps) / (avg_count + 1);
-					if(avg_count < 200)
+					if(avg_count < 20)
 						avg_count++;
+					// Update the progress bar
 					publishProgress(new Integer(readSinceProgress), new Integer((int) bps_avg));
 
 					lastupdate = now;
