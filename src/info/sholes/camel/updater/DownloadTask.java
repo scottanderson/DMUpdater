@@ -18,6 +18,7 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 			int read;
 			int readSinceProgress = 0;
 			long lastupdate = 0;
+			long downloadStarted = System.currentTimeMillis();
 
 			while((read = in.read(buf)) > 0) {
 				os.write(buf, 0, read);
@@ -30,7 +31,8 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 				long now = System.currentTimeMillis();
 				if(now - lastupdate > 100) {
 					lastupdate = now;
-					publishProgress(new Integer(readSinceProgress));
+					int bps = (int) (total * 1000 / (now - downloadStarted));
+					publishProgress(new Integer(readSinceProgress), new Integer(bps));
 					readSinceProgress = 0;
 					Thread.yield();
 				}

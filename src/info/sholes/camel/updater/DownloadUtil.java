@@ -16,9 +16,9 @@ import android.content.res.AssetFileDescriptor;
 import android.text.format.Formatter;
 
 public class DownloadUtil {
-	
+
 	private final Updater u;
-	
+
 	public DownloadUtil(Updater u) {
 		this.u = u;
 	}
@@ -47,12 +47,12 @@ public class DownloadUtil {
 		final DownloadTask dt = new DownloadTask() {
 			@Override
 			protected void onProgressUpdate(Integer... values) {
-				for(Integer i : values)
-					pd.incrementProgressBy(i.intValue());
-				
+				pd.incrementProgressBy(values[0].intValue());
+
 				String c = Formatter.formatFileSize(u, pd.getProgress());
 				String m = Formatter.formatFileSize(u, pd.getMax());
-				pd.setMessage(fout.getName() + "\n" + c + "/" + m);
+				String bps = Formatter.formatFileSize(u, values[1].intValue()) + "/s (avg)";
+				pd.setMessage(fout.getName() + "\n" + c + "/" + m + "\n" + bps);
 			}
 
 			@Override
@@ -65,7 +65,7 @@ public class DownloadUtil {
 				}
 			}
 		};
-		
+
 		pd.setTitle(append ? "Appending" : "Downloading");
 		pd.setMessage(fout.getName());
 		if(filelen == 0) {
@@ -75,18 +75,18 @@ public class DownloadUtil {
 			pd.setMax(filelen);
 		}
 		pd.setButton( "Cancel", new OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						u.addText("Download cancelled.");
-						dt.cancel(true);
-						pd.hide();
-						fout.delete();
-					}});
+			public void onClick(DialogInterface dialog, int which) {
+				u.addText("Download cancelled.");
+				dt.cancel(true);
+				pd.hide();
+				fout.delete();
+			}});
 		pd.setCancelable(false);
 		pd.show();
 
 		dt.execute(is, os);
 	}
-	
+
 	public static String md5(File f) throws Exception {
 		return md5(new FileInputStream(f));
 	}
@@ -103,7 +103,7 @@ public class DownloadUtil {
 			md5 += toHex(h);
 		return md5;
 	}
-	
+
 	public static String md5(InputStream is, int length) throws Exception {
 		int bytes_read;
 		byte[] buffer = new byte[1024];
@@ -111,7 +111,7 @@ public class DownloadUtil {
 		int total = 0;
 		while((bytes_read = is.read(buffer)) > 0) {
 			digest.update(buffer, 0, bytes_read);
-			
+
 			total += bytes_read;
 			if(total >= length) {
 				if(total == length)
