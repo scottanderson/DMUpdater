@@ -63,12 +63,19 @@ public class DownloadHelper {
 
 	}
 
+	enum RomType {
+		ROM_TGZ,
+		UPDATE_ZIP;
+	}
+
 	class RomDescriptor {
+		public final RomType type;
 		public final String name;
 		public final String dispid;
 		public final String url;
 		public final String md5;
-		private RomDescriptor(String name, String dispid, String url, String md5) {
+		private RomDescriptor(RomType type, String name, String dispid, String url, String md5) {
+			this.type = type;
 			this.name = name;
 			this.dispid = dispid;
 			this.url = url;
@@ -98,16 +105,18 @@ public class DownloadHelper {
 		while(where.exists()) {
 			String actual_md5;
 			try {
+				u.addText("Calculating md5 of " + where.getName());
 				actual_md5 = DownloadUtil.md5(where);
 			} catch (Exception e) {
 				// Re-download
 				break;
 			}
 			if(expect_md5.equals(actual_md5)) {
+				u.addText("Pass");
 				// Got the file
 				return where;
 			} else {
-				u.addText("Unknown MD5: " + actual_md5);
+				u.addText("Fail: " + actual_md5);
 				// Fall-through to re-download
 				break;
 			}
@@ -123,13 +132,25 @@ public class DownloadHelper {
 	public List<RomDescriptor> getRoms() {
 		List<RomDescriptor> roms = new ArrayList<RomDescriptor>();
 
-		for(XMLElementDecorator rom : xed.getChild("roms").getChildren("rom")) {
-			String name = rom.getAttribute("name");
-			String dispid = rom.getAttribute("dispid");
-			String url = rom.getChild("url").getString();
-			String md5 = rom.getChild("md5").getString();
-			roms.add(new RomDescriptor(name, dispid, url, md5));
-		}
+		XMLElementDecorator e_zips = xed.getChild("zips");
+		if(e_zips != null)
+			for(XMLElementDecorator rom : e_zips.getChildren("zip")) {
+				String name = rom.getAttribute("name");
+				String dispid = rom.getAttribute("dispid");
+				String url = rom.getChild("url").getString();
+				String md5 = rom.getChild("md5").getString();
+				roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, dispid, url, md5));
+			}
+
+		XMLElementDecorator e_roms = xed.getChild("roms");
+		if(e_roms != null)
+			for(XMLElementDecorator rom : e_roms.getChildren("rom")) {
+				String name = rom.getAttribute("name");
+				String dispid = rom.getAttribute("dispid");
+				String url = rom.getChild("url").getString();
+				String md5 = rom.getChild("md5").getString();
+				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, dispid, url, md5));
+			}
 
 		return roms;
 	}
