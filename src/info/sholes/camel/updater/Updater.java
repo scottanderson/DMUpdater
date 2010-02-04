@@ -406,8 +406,22 @@ public class Updater extends Activity {
 
 	private void confirmedRomInstall(File rom) {
 		try {
-			SuperUser.oneShot("echo \"--install_tgz\" > /cache/recovery/command");
-			SuperUser.oneShot("echo -n \"" + rom.getAbsolutePath() + "\" >> /cache/recovery/command");
+			switch(selected_rom.type) {
+			case ROM_TGZ:
+				SuperUser.oneShot("echo -n \"--install_tgz=" + rom.getAbsolutePath() + "\" > /cache/recovery/command");
+				break;
+			case UPDATE_ZIP:
+				String path = rom.getAbsolutePath();
+				if(!path.startsWith("/sdcard/"))
+					throw new Exception("Roms go on /sdcard...what happened? " + path);
+				path = "SDCARD:" + path.substring(8);
+				// SPRecovery blocks update.zip via --update_pacakge, --allow_update_package let it know we're not Google
+				SuperUser.oneShot("echo \"--allow_update_package\" > /cache/recovery/command");
+				SuperUser.oneShot("echo -n \"--update_package=" + path + "\" >> /cache/recovery/command");
+				break;
+			default:
+				throw new Exception("Unknown rom type: " + selected_rom.type.name());
+			}
 			SuperUser.oneShot("/system/bin/reboot recovery");
 		} catch(Exception e) {
 			showException(e);
