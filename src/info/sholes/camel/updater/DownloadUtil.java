@@ -35,6 +35,11 @@ public class DownloadUtil {
 	private void downloadFile(final File fout, String from, InputStream is, int filelen, final Callback callback) throws Exception {
 		final OutputStream os = new FileOutputStream(fout);
 
+		String msg = fout.getName();
+		if(!from.endsWith(msg))
+			msg = from.substring(from.lastIndexOf('/') + 1) + "\n" + msg;
+		final String baseMessage = msg;
+
 		final ProgressDialog pd = new ProgressDialog(u);
 		final DownloadTask dt = new DownloadTask() {
 			@Override
@@ -57,7 +62,7 @@ public class DownloadUtil {
 					timeleft += minutesleft + "m ";
 				}
 				timeleft += secondsleft + "s";
-				pd.setMessage(fout.getName() + "\n" + c + "/" + m + "\n" + bps + "\nETA: " + timeleft);
+				pd.setMessage(baseMessage + "\n" + c + "/" + m + "\n" + bps + "\nETA: " + timeleft);
 			}
 
 			@Override
@@ -72,7 +77,7 @@ public class DownloadUtil {
 		};
 
 		pd.setTitle("Downloading");
-		pd.setMessage(fout.getName());
+		pd.setMessage(baseMessage);
 		if(filelen == 0) {
 			pd.setIndeterminate(true);
 		} else {
