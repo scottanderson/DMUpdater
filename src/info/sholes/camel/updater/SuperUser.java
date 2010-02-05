@@ -12,6 +12,30 @@ public class SuperUser {
 	private final BufferedReader out;
 	private final BufferedReader err;
 
+	/**
+	 * To prevent the force close dialog
+	 */
+	public static boolean isRemembered(Updater u) throws Exception {
+		SuperUser su = new SuperUser();
+		su.in.write("exit");
+		su.in.newLine();
+		su.in.flush();
+
+		// Wait up to 1 second for 'su' to return control to us
+		long start = System.currentTimeMillis();
+		while(System.currentTimeMillis() - start < 2000) {
+			try {
+				su.p.exitValue();
+				return true;
+			} catch(IllegalThreadStateException e) {
+				// su hasn't returned yet, keep waiting
+			}
+		}
+
+		// timeout
+		return false;
+	}
+
 	public static String oneShot(String command) throws Exception {
 		SuperUser su = new SuperUser();
 		su.in.write(command);

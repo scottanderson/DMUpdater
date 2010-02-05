@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Updater extends Activity {
 	private DownloadHelper dh = null;
@@ -67,46 +68,72 @@ public class Updater extends Activity {
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
 
-		boolean rooted = new File("/system/bin/su").exists();
-		if(rooted) {
-			try {
-				String out = SuperUser.oneShot("ls -l /sdcard");
-				if(out.length() == 0) {
-					addText("ls -l /sdcard didn't do anything..what the heck!");
-					return;
-				}
-			} catch (Exception e) {
-				// Permission denied, most likely
-				rooted = false;
-			}
+		checkRoot();
+	}
+
+	private void checkRoot() {
+		if(!new File("/system/bin/su").exists()) {
+			notRooted();
+			return;
 		}
 
-		if(!rooted) {
-			new AlertDialog.Builder(this)
-			.setMessage(R.string.not_rooted)
-			.setCancelable(false)
-			.setPositiveButton(
-					R.string.not_rooted_pos,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							dh.resetDownloadAttempts();
-							doRoot();
-						}
-					}
-			)
-			.setNegativeButton(
-					R.string.not_rooted_neg,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							System.exit(1);
-						}
-					}
-			)
-			.show();
-		} else {
-			dh.resetDownloadAttempts();
-			doFlashImageDownload();
+		// SU exists, check if it works
+		Toast t = Toast.makeText(this, "Check the remember box and allow", Toast.LENGTH_LONG);
+		t.show();
+		try {
+			if(SuperUser.isRemembered(this)) {
+				t.cancel();
+				rootVerified();
+				return;
+			}
+		} catch (Exception e) {
+			// Whoa! What happened?
+			showException(e);
+			return;
 		}
+
+		// Didn't work - tell them to check the remember box
+		new AlertDialog.Builder(this)
+		.setMessage("Looks like your phone is rooted, but you haven't given SMUpdater access yet. You *must* check the remember box!")
+		.setPositiveButton(
+				"Check again",
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+						checkRoot();
+					}
+				}
+		)
+		.show();
+	}
+
+	private void notRooted() {
+		new AlertDialog.Builder(this)
+		.setMessage(R.string.not_rooted)
+		.setCancelable(false)
+		.setPositiveButton(
+				R.string.not_rooted_pos,
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						dh.resetDownloadAttempts();
+						doRoot();
+					}
+				}
+		)
+		.setNegativeButton(
+				R.string.not_rooted_neg,
+				new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						System.exit(1);
+					}
+				}
+		)
+		.show();
+	}
+
+	private void rootVerified() {
+		dh.resetDownloadAttempts();
+		doFlashImageDownload();
 	}
 
 	public void callback(Callback c) {
