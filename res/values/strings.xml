@@ -14,7 +14,7 @@
 	
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
-	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on. When the MOTO logo changes to recovery, hold the volume up and camera keys to access the menu, and select "apply sdcard:update.zip" with the d-pad. When it finishes, reboot.</string>
+	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on. When the MOTO logo changes to recovery, hold the volume up and camera keys ***AT THE SAME TIME*** to access the menu, and select "apply sdcard:update.zip" with the d-pad. When it finishes, reboot.</string>
 	
 	<string name="confirm_flash_recovery">Your recovery image needs to be updated. Continuing will void your warranty!</string>
 	<string name="confirm_flash_recovery_yes">I understand the risk</string>
