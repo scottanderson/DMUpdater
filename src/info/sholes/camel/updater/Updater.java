@@ -38,7 +38,6 @@ public class Updater extends Activity {
 			public void uncaughtException(Thread thread, Throwable ex) {
 				addText("Whoa! Uncaught exception!");
 				showException(ex);
-				ex.printStackTrace();
 			}
 		});
 		setContentView(R.layout.main);
@@ -46,14 +45,16 @@ public class Updater extends Activity {
 		try {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
-			addText("Current ROM: " + p.getProperty("ro.product.model"));
-			addText("Version: " + p.getProperty("ro.build.display.id"));
+			if(!"Droid".equals(p.getProperty("ro.product.model"))) {
+				addText("This application is for the Motorola Droid");
+				return;
+			}
+			addText("Current ROM: " + p.getProperty("ro.build.display.id"));
 
 			dh = new DownloadHelper(this);
 
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
-			addText("Version Code: " + pi.versionCode);
-			addText("Version Name: " + pi.versionName);
+			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
 			if(dh.checkVersion(pi))
 				return;
 		} catch(Exception e) {
@@ -429,6 +430,7 @@ public class Updater extends Activity {
 	}
 
 	protected void showException(Throwable ex) {
+		ex.printStackTrace();
 		StringWriter sw = new StringWriter();
 		ex.printStackTrace(new PrintWriter(sw));
 		addText(sw.toString());
