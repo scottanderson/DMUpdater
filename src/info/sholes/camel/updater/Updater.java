@@ -47,7 +47,7 @@ public class Updater extends Activity {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
 			if(!"Droid".equals(p.getProperty("ro.product.model"))) {
-				addText("This application is for the Motorola Droid");
+				addText(getString(R.string.droid_only));
 				return;
 			}
 			addText("Current ROM: " + p.getProperty("ro.build.display.id"));

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="droid_only">This application is for the Motorola Droid</string>
 	<string name="app_label">SM Updater</string>
 	<string name="activity_label">SholesMod Updater</string>
 	
