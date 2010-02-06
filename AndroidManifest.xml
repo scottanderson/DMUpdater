@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="info.sholes.camel.updater"
-      android:versionName="0.0.4" android:versionCode="4">
-    <application android:icon="@drawable/icon" android:label="@string/app_label" android:name="SholesModUpdater" android:persistent="true">
-        <activity android:name=".Updater"
-                  android:label="@string/activity_label" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout" android:launchMode="singleInstance">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-    <uses-sdk android:minSdkVersion="6" />
+	package="info.sholes.camel.updater"
+	android:versionName="0.0.4"
+	android:versionCode="4">
+	<application
+	    android:icon="@drawable/icon"
+	    android:label="@string/app_label"
+		android:name="SholesModUpdater"
+		android:persistent="true">
+		<activity
+		    android:name="info.sholes.camel.updater.Updater"
+			android:label="@string/app_label"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout"
+			android:launchMode="singleInstance">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+	</application>
+	<uses-sdk android:minSdkVersion="6" />
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
 </manifest> 

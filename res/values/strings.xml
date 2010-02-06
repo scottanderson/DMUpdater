@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="droid_only">This application is for the Motorola Droid</string>
-	<string name="app_label">SM Updater</string>
-	<string name="activity_label">SholesMod Updater</string>
+    <string name="app_label">SM Updater</string>
+	<string name="droid_only">This application is only for the Motorola Droid. If you are truly using a Motorola Droid, you must return to stock Android 2.0.1 before running SM Updater.</string>
 	
     <string name="url_update">http://downloads.sholes.info/smupdater.xml</string>
 	<string name="update_available">Update available</string>
