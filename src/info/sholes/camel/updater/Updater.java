@@ -46,16 +46,22 @@ public class Updater extends Activity {
 		try {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
-			if(!"Droid".equals(p.getProperty("ro.product.model"))) {
-				addText(getString(R.string.droid_only));
-				return;
-			}
 			addText("Current ROM: " + p.getProperty("ro.build.display.id"));
 
 			dh = new DownloadHelper(this);
 
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
+
+			if("Droid".equals(p.getProperty("ro.product.model"))) {
+				addText("Manufacturer: " + p.getProperty("ro.product.manufacturer"));
+				addText("Device: " + p.getProperty("ro.product.device"));
+				addText("Brand: " + p.getProperty("ro.product.brand"));
+				addText("Model: " + p.getProperty("ro.product.model"));
+				addText(getString(R.string.droid_only));
+				return;
+			}
+
 			if(dh.checkVersion(pi))
 				return;
 		} catch(Exception e) {
