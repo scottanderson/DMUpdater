@@ -53,11 +53,12 @@ public class Updater extends Activity {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
 
-			if("Droid".equals(p.getProperty("ro.product.model"))) {
+			String model = p.getProperty("ro.product.model");
+			if(!"Droid".equals(model) && !"Droid Sholes.info Edition".equals(model)) {
 				addText("Manufacturer: " + p.getProperty("ro.product.manufacturer"));
 				addText("Device: " + p.getProperty("ro.product.device"));
 				addText("Brand: " + p.getProperty("ro.product.brand"));
-				addText("Model: " + p.getProperty("ro.product.model"));
+				addText("Model: " + model);
 				addText(getString(R.string.droid_only));
 				return;
 			}
