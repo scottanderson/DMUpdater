@@ -19,6 +19,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -139,6 +140,28 @@ public class Updater extends Activity {
 	}
 
 	private void rootVerified() {
+		// They have root, check if they have enough space
+		try {
+			String result = SuperUser.oneShot("/system/bin/toolbox df /sdcard");
+			/* /sdcard: 15654912K total, 13663360K used, 1991552K available (block size 32768) */
+			String[] space = result.split(" ");
+			String kb = space[5];
+			if((space.length != 10) || !"available".equals(space[6]) || !kb.endsWith("K"))
+				throw new IllegalStateException(result);
+			kb = kb.substring(0, kb.length() - 1);
+			int kb_i = Integer.parseInt(kb);
+			if(kb_i >= 250 * 1024) {
+				enoughSpaceVerified();
+				return;
+			}
+
+			addText("You must have 250MB free. Free space: " + Formatter.formatFileSize(this, kb_i * 1024));
+		} catch(Exception e) {
+			showException(e);
+		}
+	}
+
+	private void enoughSpaceVerified() {
 		dh.resetDownloadAttempts();
 		doFlashImageDownload();
 	}
