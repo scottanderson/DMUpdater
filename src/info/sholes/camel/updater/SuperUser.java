@@ -29,6 +29,7 @@ public class SuperUser {
 				return true;
 			} catch(IllegalThreadStateException e) {
 				// su hasn't returned yet, keep waiting
+				Thread.sleep(50);
 			}
 		}
 
