@@ -13,7 +13,7 @@ public class DownloadTask extends AsyncTask<Object, Integer, Exception> {
 			InputStream in = (InputStream)params[0];
 			OutputStream os = (OutputStream)params[1];
 
-			byte[] buf = new byte[40960];
+			byte[] buf = new byte[32768];
 			int read;
 			int readSinceProgress = 0;
 			long lastupdate = System.currentTimeMillis();
