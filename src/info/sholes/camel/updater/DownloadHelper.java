@@ -130,7 +130,7 @@ public class DownloadHelper {
 
 		download_attempts++;
 		if(download_attempts >= 3)
-			throw new Exception("It's hopeless; giving up");
+			throw new Exception("Failed to download " + url);
 		du.downloadFile(where, new URL(url), cb);
 		return null;
 	}
