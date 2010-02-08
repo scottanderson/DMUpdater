@@ -16,8 +16,14 @@ import android.net.Uri;
 public class DownloadHelper {
 	private static XMLElementDecorator xed = null;
 	private static void init(Context ctx) throws Exception {
-		if(xed == null)
-			xed = XMLElementDecorator.parse(ctx.getString(R.string.url_update)).getChild("smupdater");
+		if(xed == null) {
+			String url = ctx.getString(R.string.url_update);
+			try {
+				xed = XMLElementDecorator.parse(url).getChild("smupdater");
+			} catch(Exception e) {
+				throw new Exception("Unable to contact downloads server " + url, e);
+			}
+		}
 	}
 	private static XMLElementDecorator getFileXml(String type) throws Exception {
 		for(XMLElementDecorator file : xed.getChild("files").getChildren("file")) {
