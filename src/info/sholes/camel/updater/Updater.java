@@ -86,7 +86,7 @@ public class Updater extends Activity {
 		}
 
 		// SU exists, check if it works
-		Toast t = Toast.makeText(this, "Check the remember box and allow", Toast.LENGTH_LONG);
+		Toast t = Toast.makeText(this, R.string.toast_check_remember, Toast.LENGTH_LONG);
 		t.show();
 		try {
 			if(SuperUser.isRemembered(this)) {
@@ -102,9 +102,9 @@ public class Updater extends Activity {
 
 		// Didn't work - tell them to check the remember box
 		new AlertDialog.Builder(this)
-		.setMessage("Looks like your phone is rooted, but you haven't given SMUpdater access yet. You *must* check the remember box!")
+		.setMessage(R.string.rooted_check_remember)
 		.setPositiveButton(
-				"Check again",
+				R.string.check_again,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
@@ -140,7 +140,23 @@ public class Updater extends Activity {
 	}
 
 	private void rootVerified() {
-		// They have root, check if they have enough space
+		// They have root, check if /sdcard is mounted
+		try {
+			String mounts = SuperUser.oneShot("/system/bin/toolbox mount");
+			if(mounts.contains(" /sdcard ")) {
+				rootAndSdcardVerified();
+				return;
+			} else {
+				addText(getString(R.string.sdcard_not_mounted));
+			}
+		} catch(Exception e) {
+			showException(e);
+			return;
+		}
+	}
+
+	private void rootAndSdcardVerified() {
+		// /sdcard is mounted, check if they have enough space
 		try {
 			String result = SuperUser.oneShot("/system/bin/toolbox df /sdcard");
 			/* /sdcard: 15654912K total, 13663360K used, 1991552K available (block size 32768) */
@@ -155,7 +171,7 @@ public class Updater extends Activity {
 				return;
 			}
 
-			addText("You must have 250MB free. Free space: " + Formatter.formatFileSize(this, kb_i * 1024));
+			addText(getString(R.string.need_250mb) + Formatter.formatFileSize(this, kb_i * 1024));
 		} catch(Exception e) {
 			showException(e);
 		}

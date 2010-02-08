@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_label">SM Updater</string>
+	<string name="app_label">SM Updater</string>
 	<string name="droid_only">This application is only for the Motorola Droid. If you are truly using a Motorola Droid, you must return to stock Android 2.0.1 before running SM Updater.</string>
 	
-    <string name="url_update">http://downloads.sholes.info/smupdater.xml</string>
+	<string name="url_update">http://downloads.sholes.info/smupdater.xml</string>
 	<string name="update_available">Update available</string>
-    <string name="update_available_pos">Install</string>
-    <string name="update_available_neg">Quit</string>
+	<string name="update_available_pos">Install</string>
+	<string name="update_available_neg">Quit</string>
 	
 	<string name="not_rooted">Your phone is not rooted. This is required for installing ROMs, but will probably void your warranty. If you choose to continue, we accept no responsibility for anything that happens to your phone.</string>
 	<string name="not_rooted_pos">Root my phone</string>
@@ -15,6 +15,13 @@
 	<string name="add_exploit">Got 2.0.1 update.zip, adding exploit code</string>
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
 	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on. When the MOTO logo changes to recovery, hold the volume up and camera keys ***AT THE SAME TIME*** to access the menu, and select "apply sdcard:update.zip" with the d-pad. When it finishes, reboot.</string>
+	
+	<string name="toast_check_remember">Check the remember box and allow</string>
+	<string name="rooted_check_remember">Looks like your phone is rooted, but you have not given SMUpdater access yet. You *must* check the remember box!</string>
+	<string name="check_again">Check again</string>
+	
+	<string name="sdcard_not_mounted">Your SD card is not mounted. If your SD card is mounted on your computer, you must eject it before running SM Updater.</string>
+	<string name="need_250mb">You must have at least 250MB free on your SD card to install SholesMod. Free space: </string>
 	
 	<string name="confirm_flash_recovery">Your recovery image needs to be updated. Continuing will void your warranty!</string>
 	<string name="confirm_flash_recovery_yes">I understand the risk</string>
@@ -28,12 +35,12 @@
 	<string name="confirm_flash_rom_yes">Flash ROM</string>
 	<string name="confirm_flash_rom_no">Quit (recommended)</string>
 	
-    <string name="rom_menu_no_roms">No ROMs available!</string>
-    <string name="rom_menu">Select a ROM:</string>
-    <string name="rom_menu_pos">Select</string>
+	<string name="rom_menu_no_roms">No ROMs available!</string>
+	<string name="rom_menu">Select a ROM:</string>
+	<string name="rom_menu_pos">Select</string>
 	<string name="rom_menu_neg">Quit (recommended)</string>
-    
-    <string name="select_rom_download_tgz">Download tgz</string>
-    <string name="select_rom_flash_tar">Flash tar</string>
+	
+	<string name="select_rom_download_tgz">Download tgz</string>
+	<string name="select_rom_flash_tar">Flash tar</string>
 	<string name="select_rom_neg">Quit (recommended)</string>
 </resources>
