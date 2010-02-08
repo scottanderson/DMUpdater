@@ -23,7 +23,6 @@ import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class Updater extends Activity {
 	private DownloadHelper dh = null;
@@ -87,11 +86,8 @@ public class Updater extends Activity {
 		}
 
 		// SU exists, check if it works
-		Toast t = Toast.makeText(this, R.string.toast_check_remember, Toast.LENGTH_LONG);
-		t.show();
 		try {
 			if(SuperUser.isRemembered(this)) {
-				t.cancel();
 				rootVerified();
 				return;
 			}

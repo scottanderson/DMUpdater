@@ -16,7 +16,6 @@
 	<string name="exploit_ready">You have the update.zip ready to exploit!</string>
 	<string name="reboot_recovery">Reboot in to recovery mode by holding the physical keyboard X while powering on. When the MOTO logo changes to recovery, hold the volume up and camera keys ***AT THE SAME TIME*** to access the menu, and select "apply sdcard:update.zip" with the d-pad. When it finishes, reboot.</string>
 	
-	<string name="toast_check_remember">Check the remember box and allow</string>
 	<string name="rooted_check_remember">Looks like your phone is rooted, but you have not given SMUpdater access yet. You *must* check the remember box!</string>
 	<string name="check_again">Check again</string>
 	
