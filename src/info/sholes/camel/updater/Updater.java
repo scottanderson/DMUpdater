@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
+import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -503,7 +504,13 @@ public class Updater extends Activity {
 	}
 
 	protected void showException(Throwable ex) {
-		ex.printStackTrace();
+		Log.e("SMUpdater", ex.getMessage(), ex);
+		
+		new AlertDialog.Builder(this)
+		.setTitle("An error has occurred!")
+		.setMessage(ex.getMessage())
+		.show();
+		
 		StringWriter sw = new StringWriter();
 		ex.printStackTrace(new PrintWriter(sw));
 		addText(sw.toString());
