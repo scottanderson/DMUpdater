@@ -26,7 +26,6 @@ import android.widget.TextView;
 
 public class Updater extends Activity {
 	private DownloadHelper dh = null;
-	private File update_zip = null;
 	private File flash_image = null;
 	private File recovery_image = null;
 	private RomDescriptor selected_rom = null;
@@ -71,8 +70,7 @@ public class Updater extends Activity {
 			return;
 		}
 
-		update_zip = new File("/sdcard/update.zip");
-		String tmp = getDir("tmp", MODE_WORLD_READABLE).getAbsolutePath();
+		String tmp = getFilesDir().getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
 
@@ -201,7 +199,7 @@ public class Updater extends Activity {
 
 	private void doRoot() {
 		try {
-			File f = dh.downloadFile(Downloadable.ROOT, update_zip, Callback.ROOT);
+			File f = dh.downloadFile(Downloadable.ROOT, new File("/sdcard/update.zip"), Callback.ROOT);
 			if(f == null) {
 				// Wait for the callback
 				return;
