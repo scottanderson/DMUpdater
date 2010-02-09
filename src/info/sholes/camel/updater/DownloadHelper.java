@@ -111,18 +111,18 @@ public class DownloadHelper {
 		while(where.exists()) {
 			String actual_md5;
 			try {
-				u.addText("Calculating md5 of " + where.getName());
 				actual_md5 = DownloadUtil.md5(where);
 			} catch (Exception e) {
 				// Re-download
 				break;
 			}
+			String message = "Calculating md5 of " + where.getName() + "...";
 			if(expect_md5.equals(actual_md5)) {
-				u.addText("Pass");
+				u.addText(message + "pass");
 				// Got the file
 				return where;
 			} else {
-				u.addText("Fail: " + actual_md5);
+				u.addText(message + "fail: " + actual_md5);
 				// Fall-through to re-download
 				break;
 			}
