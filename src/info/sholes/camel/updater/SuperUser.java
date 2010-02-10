@@ -23,10 +23,11 @@ public class SuperUser {
 
 		// Wait up to 1 second for 'su' to return control to us
 		long start = System.currentTimeMillis();
-		while(System.currentTimeMillis() - start < 2000) {
+		while(System.currentTimeMillis() - start < 1000) {
 			try {
-				su.p.exitValue();
-				return true;
+				int ret = su.p.exitValue();
+				su.checkErr();
+				return (ret == 0);
 			} catch(IllegalThreadStateException e) {
 				// su hasn't returned yet, keep waiting
 				Thread.sleep(50);

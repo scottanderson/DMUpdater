@@ -90,8 +90,12 @@ public class Updater extends Activity {
 				return;
 			}
 		} catch (Exception e) {
-			// Whoa! What happened?
-			showException(e);
+			if(e.getMessage().toLowerCase().contains("permission denied")) {
+				notRooted();
+			} else {
+				// Whoa! What happened?
+				showException(e);
+			}
 			return;
 		}
 
@@ -499,12 +503,12 @@ public class Updater extends Activity {
 
 	protected void showException(Throwable ex) {
 		Log.e("SMUpdater", ex.getMessage(), ex);
-		
+
 		new AlertDialog.Builder(this)
 		.setTitle("An error has occurred!")
 		.setMessage(ex.getMessage())
 		.show();
-		
+
 		StringWriter sw = new StringWriter();
 		ex.printStackTrace(new PrintWriter(sw));
 		addText(sw.toString());
