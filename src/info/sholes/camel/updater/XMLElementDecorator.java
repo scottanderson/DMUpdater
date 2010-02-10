@@ -106,7 +106,7 @@ public class XMLElementDecorator {
 				matches.add(child);
 		return matches.toArray(new XMLElementDecorator[matches.size()]);
 	}
-	
+
 	public String getAttribute(String name) {
 		return attributes.get(name);
 	}
@@ -154,19 +154,19 @@ public class XMLElementDecorator {
 		return new Boolean(contents).booleanValue();
 	}
 
-//	public Date getDate() {
-//		if(contents == null)
-//			return null;
-//
-//		if(contents.matches("[0-9]+"))
-//			return new Date(Long.parseLong(contents));
-//
-//		try {
-//			return new Date(TimeFormatter.parseDate(contents));
-//		} catch(ParseException e) {}
-//
-//		throw new NumberFormatException(contents);
-//	}
+	//	public Date getDate() {
+	//		if(contents == null)
+	//			return null;
+	//
+	//		if(contents.matches("[0-9]+"))
+	//			return new Date(Long.parseLong(contents));
+	//
+	//		try {
+	//			return new Date(TimeFormatter.parseDate(contents));
+	//		} catch(ParseException e) {}
+	//
+	//		throw new NumberFormatException(contents);
+	//	}
 
 	@Override
 	public String toString() {
