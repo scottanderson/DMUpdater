@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,17 +14,21 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Updater extends Activity {
 	private DownloadHelper dh = null;
+	private String current_rom = null;
 	private File flash_image = null;
 	private File recovery_image = null;
 	private RomDescriptor selected_rom = null;
@@ -35,18 +38,13 @@ public class Updater extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			public void uncaughtException(Thread thread, Throwable ex) {
-				addText("Whoa! Uncaught exception!");
-				showException(ex);
-			}
-		});
 		setContentView(R.layout.main);
 
 		try {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
-			addText("Current ROM: " + p.getProperty("ro.build.display.id"));
+			current_rom = p.getProperty("ro.build.display.id");
+			addText("Current ROM: " + current_rom);
 
 			dh = new DownloadHelper(this);
 
@@ -348,52 +346,23 @@ public class Updater extends Activity {
 	}
 
 	private void showRomMenu() {
-		final List<RomDescriptor> roms = dh.getRoms();
+		Button b = new Button(this);
+		b.setText("ROM menu");
+		b.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				sendRomMenuIntent();
+			}
+		});
+		LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
+		ll.addView(b);
+	}
 
-		if(roms.size() == 0) {
-			addText(getString(R.string.rom_menu_no_roms));
-		} else if(roms.size() > 1) {
-			String[] romNames = new String[roms.size()];
-			for(int i = 0; i < romNames.length; i++)
-				romNames[i] = roms.get(i).name;
-			selected_rom = roms.get(roms.size()-1);
+	private void sendRomMenuIntent() {
+		final List<RomDescriptor> roms = dh.getRoms(current_rom);
 
-			new AlertDialog.Builder(this)
-			.setTitle(R.string.rom_menu)
-			.setCancelable(false)
-			.setSingleChoiceItems(
-					romNames,
-					roms.indexOf(selected_rom),
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							selected_rom = roms.get(which);
-						}
-					}
-			)
-			.setPositiveButton(
-					R.string.rom_menu_pos,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
-							if(selected_rom != null)
-								selectRom(selected_rom);
-							else
-								showRomMenu();
-						}
-					}
-			)
-			.setNegativeButton(
-					R.string.rom_menu_neg,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							System.exit(1);
-						}
-					}
-			)
-			.show();
-		} else {
-			selectRom(roms.get(0));
-		}
+		Intent i = new Intent(this, RomMenu.class);
+		i.putExtra("roms", roms.toArray(new RomDescriptor[roms.size()]));
+		startActivity(i);
 	}
 
 	private void selectRom(RomDescriptor rom) {

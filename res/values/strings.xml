@@ -34,11 +34,6 @@
 	<string name="confirm_flash_rom_yes">Flash ROM</string>
 	<string name="confirm_flash_rom_no">Quit (recommended)</string>
 	
-	<string name="rom_menu_no_roms">No ROMs available!</string>
-	<string name="rom_menu">Select a ROM:</string>
-	<string name="rom_menu_pos">Select</string>
-	<string name="rom_menu_neg">Quit (recommended)</string>
-	
 	<string name="select_rom_download_tgz">Download tgz</string>
 	<string name="select_rom_flash_tar">Flash tar</string>
 	<string name="select_rom_neg">Quit (recommended)</string>

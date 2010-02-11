@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 public class DownloadHelper {
 	private static XMLElementDecorator xed = null;
@@ -74,19 +76,53 @@ public class DownloadHelper {
 		UPDATE_ZIP;
 	}
 
-	class RomDescriptor {
+	static class RomDescriptor implements Parcelable {
 		public final RomType type;
 		public final String name;
 		public final String dispid;
 		public final String url;
 		public final String md5;
-		private RomDescriptor(RomType type, String name, String dispid, String url, String md5) {
+		public final int icon;
+		private RomDescriptor(RomType type, String name, String dispid, String url, String md5, int icon) {
 			this.type = type;
 			this.name = name;
 			this.dispid = dispid;
 			this.url = url;
 			this.md5 = md5;
+			this.icon = icon;
 		}
+
+		public RomDescriptor(Parcel in) {
+			this.type = RomType.values()[in.readInt()];
+			this.name = in.readString();
+			this.dispid = in.readString();
+			this.url = in.readString();
+			this.md5 = in.readString();
+			this.icon = in.readInt();
+		}
+
+		public int describeContents() {
+			return 0;
+		}
+
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeInt(type.ordinal());
+			dest.writeString(name);
+			dest.writeString(dispid);
+			dest.writeString(url);
+			dest.writeString(md5);
+			dest.writeInt(icon);
+		}
+
+		public static final Parcelable.Creator<RomDescriptor> CREATOR = new Parcelable.Creator<RomDescriptor>() {
+			public RomDescriptor createFromParcel(Parcel in) {
+				return new RomDescriptor(in);
+			}
+
+			public RomDescriptor[] newArray(int size) {
+				return new RomDescriptor[size];
+			}
+		};
 	}
 
 	private final Updater u;
@@ -135,7 +171,7 @@ public class DownloadHelper {
 		return null;
 	}
 
-	public List<RomDescriptor> getRoms() {
+	public List<RomDescriptor> getRoms(String currentBuild) {
 		List<RomDescriptor> roms = new ArrayList<RomDescriptor>();
 
 		XMLElementDecorator e_zips = xed.getChild("zips");
@@ -145,7 +181,7 @@ public class DownloadHelper {
 				String dispid = rom.getAttribute("dispid");
 				String url = rom.getChild("url").getString();
 				String md5 = rom.getChild("md5").getString();
-				roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, dispid, url, md5));
+				roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, dispid, url, md5, R.drawable.stock));
 			}
 
 		XMLElementDecorator e_roms = xed.getChild("roms");
@@ -155,7 +191,10 @@ public class DownloadHelper {
 				String dispid = rom.getAttribute("dispid");
 				String url = rom.getChild("url").getString();
 				String md5 = rom.getChild("md5").getString();
-				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, dispid, url, md5));
+				int icon = R.drawable.sholesmod;
+				if((currentBuild != null) && currentBuild.equals(dispid))
+					icon = R.drawable.current;
+				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, dispid, url, md5, icon));
 			}
 
 		return roms;
