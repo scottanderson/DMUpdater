@@ -23,7 +23,7 @@ public class SuperUser {
 
 		// Wait up to 1 second for 'su' to return control to us
 		long start = System.currentTimeMillis();
-		while(System.currentTimeMillis() - start < 1000) {
+		while(System.currentTimeMillis() - start < 2000) {
 			try {
 				int ret = su.p.exitValue();
 				su.checkErr();
