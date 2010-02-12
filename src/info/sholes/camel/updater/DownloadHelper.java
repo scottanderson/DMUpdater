@@ -141,11 +141,11 @@ public class DownloadHelper<T> {
 		download_attempts = 0;
 	}
 
-	public File downloadFile(Downloadable which, File where, T cb) throws Exception {
-		return downloadFile(which.getUrl(), which.getMd5(), where, cb);
+	public File downloadFile(Downloadable which, File where, T callback, T callback_cancel) throws Exception {
+		return downloadFile(which.getUrl(), which.getMd5(), where, callback, callback_cancel);
 	}
 
-	public File downloadFile(String url, String expect_md5, File where, T cb) throws Exception {
+	public File downloadFile(String url, String expect_md5, File where, T callback, T callback_cancel) throws Exception {
 		while(where.exists()) {
 			String actual_md5;
 			try {
@@ -169,7 +169,7 @@ public class DownloadHelper<T> {
 		download_attempts++;
 		if(download_attempts >= 3)
 			throw new Exception("Failed to download " + url);
-		du.downloadFile(where, new URL(url), cb);
+		du.downloadFile(where, new URL(url), callback, callback_cancel);
 		return null;
 	}
 

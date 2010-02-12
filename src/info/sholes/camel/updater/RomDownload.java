@@ -17,7 +17,8 @@ import android.widget.TextView;
 
 public class RomDownload extends Activity implements Caller<RomDownload.Callback> {
 	enum Callback {
-		ROM_DOWNLOAD
+		ROM_DOWNLOAD,
+		DOWNLOAD_CANCELLED
 	}
 
 	private DownloadHelper<Callback> dh = null;
@@ -91,6 +92,9 @@ public class RomDownload extends Activity implements Caller<RomDownload.Callback
 		case ROM_DOWNLOAD:
 			doRomDownload();
 			return;
+		case DOWNLOAD_CANCELLED:
+			finish();
+			return;
 		default:
 			addText("Unknown callback: " + c.name());
 			return;
@@ -99,7 +103,7 @@ public class RomDownload extends Activity implements Caller<RomDownload.Callback
 
 	private void doRomDownload() {
 		try {
-			File f = dh.downloadFile(selected_rom.url, selected_rom.md5, rom_tgz, Callback.ROM_DOWNLOAD);
+			File f = dh.downloadFile(selected_rom.url, selected_rom.md5, rom_tgz, Callback.ROM_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
 			if(f == null) {
 				// Wait for the callback
 				return;

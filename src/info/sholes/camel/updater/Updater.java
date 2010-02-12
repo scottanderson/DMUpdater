@@ -31,7 +31,8 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		ROOT,
 		FLASH_IMAGE_DOWNLOAD,
 		RECOVERY_IMAGE_DOWNLOAD,
-		ROM_DOWNLOAD
+		ROM_DOWNLOAD,
+		DOWNLOAD_CANCELLED
 	}
 
 	private DownloadHelper<Callback> dh = null;
@@ -198,6 +199,9 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		case RECOVERY_IMAGE_DOWNLOAD:
 			doRecoveryImageDownload();
 			return;
+		case DOWNLOAD_CANCELLED:
+			finish();
+			return;
 		default:
 			addText("Unknown callback: " + c.name());
 			return;
@@ -206,7 +210,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void doRoot() {
 		try {
-			File f = dh.downloadFile(Downloadable.ROOT, new File("/sdcard/update.zip"), Callback.ROOT);
+			File f = dh.downloadFile(Downloadable.ROOT, new File("/sdcard/update.zip"), Callback.ROOT, Callback.DOWNLOAD_CANCELLED);
 			if(f == null) {
 				// Wait for the callback
 				return;
@@ -226,7 +230,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void doFlashImageDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.FLASH_IMAGE, flash_image, Callback.FLASH_IMAGE_DOWNLOAD);
+			File f = dh.downloadFile(Downloadable.FLASH_IMAGE, flash_image, Callback.FLASH_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
 			if(f == null) {
 				// Wait for the callback
 				return;
@@ -244,7 +248,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void doRecoveryImageDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.RECOVERY_IMAGE, recovery_image, Callback.RECOVERY_IMAGE_DOWNLOAD);
+			File f = dh.downloadFile(Downloadable.RECOVERY_IMAGE, recovery_image, Callback.RECOVERY_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
 			if(f == null) {
 				// Wait for the callback
 				return;

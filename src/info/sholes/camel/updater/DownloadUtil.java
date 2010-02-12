@@ -25,17 +25,17 @@ public class DownloadUtil<T> {
 		this.caller = caller;
 	}
 
-	public void downloadFile(File fout, URL url, T callback) throws Exception {
+	public void downloadFile(File fout, URL url, T callback, T callback_cancel) throws Exception {
 		URLConnection uc = url.openConnection();
 		int length = 0;
 		try {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
 		caller.addText("Downloading " + url.toString());
-		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback);
+		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback, callback_cancel);
 	}
 
-	private void downloadFile(final File fout, String from, InputStream is, int filelen, final T callback) throws Exception {
+	private void downloadFile(final File fout, String from, InputStream is, int filelen, final T callback, final T callback_cancel) throws Exception {
 		final OutputStream os = new FileOutputStream(fout);
 
 		String msg = fout.getName();
@@ -89,10 +89,10 @@ public class DownloadUtil<T> {
 		}
 		pd.setButton("Cancel", new OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-				caller.addText("Download cancelled.");
 				dt.cancel(true);
 				pd.hide();
 				fout.delete();
+				caller.callback(callback_cancel);
 			}});
 		pd.setCancelable(false);
 		pd.show();
