@@ -10,17 +10,18 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.text.format.Formatter;
 
 public class DownloadUtil<T> {
 
-	private final Updater u;
+	private final Context ctx;
 	private final Caller<T> caller;
 
-	public DownloadUtil(Updater u, Caller<T> caller) {
-		this.u = u;
+	public DownloadUtil(Context u, Caller<T> caller) {
+		this.ctx = u;
 		this.caller = caller;
 	}
 
@@ -30,7 +31,7 @@ public class DownloadUtil<T> {
 		try {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
-		u.addText("Downloading " + url.toString());
+		caller.addText("Downloading " + url.toString());
 		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback);
 	}
 
@@ -42,15 +43,15 @@ public class DownloadUtil<T> {
 			msg = from.substring(from.lastIndexOf('/') + 1) + "\n" + msg;
 		final String baseMessage = msg;
 
-		final ProgressDialog pd = new ProgressDialog(u);
+		final ProgressDialog pd = new ProgressDialog(ctx);
 		final DownloadTask dt = new DownloadTask() {
 			@Override
 			protected void onProgressUpdate(Integer... values) {
 				pd.incrementProgressBy(values[0].intValue());
 
-				String c = Formatter.formatFileSize(u, pd.getProgress());
-				String m = Formatter.formatFileSize(u, pd.getMax());
-				String bps = Formatter.formatFileSize(u, values[1].intValue()) + "/s";
+				String c = Formatter.formatFileSize(ctx, pd.getProgress());
+				String m = Formatter.formatFileSize(ctx, pd.getMax());
+				String bps = Formatter.formatFileSize(ctx, values[1].intValue()) + "/s";
 				int secondsleft = (pd.getMax() - pd.getProgress()) / values[1].intValue();
 				String timeleft = "";
 				if(secondsleft > 60) {
@@ -73,7 +74,7 @@ public class DownloadUtil<T> {
 				if(result == null) {
 					caller.callback(callback);
 				} else {
-					u.showException(result);
+					caller.showException(result);
 				}
 			}
 		};
@@ -88,7 +89,7 @@ public class DownloadUtil<T> {
 		}
 		pd.setButton("Cancel", new OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-				u.addText("Download cancelled.");
+				caller.addText("Download cancelled.");
 				dt.cancel(true);
 				pd.hide();
 				fout.delete();

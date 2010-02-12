@@ -125,13 +125,15 @@ public class DownloadHelper<T> {
 		};
 	}
 
-	private final Updater u;
+	private final Context ctx;
+	private final Caller<T> caller;
 	private final DownloadUtil<T> du;
 	private int download_attempts = 0;
 
-	public DownloadHelper(Updater u, Caller<T> caller) throws Exception {
+	public DownloadHelper(Context u, Caller<T> caller) throws Exception {
 		init(u);
-		this.u = u;
+		this.ctx = u;
+		this.caller = caller;
 		du = new DownloadUtil<T>(u, caller);
 	}
 
@@ -154,11 +156,11 @@ public class DownloadHelper<T> {
 			}
 			String message = "Calculating md5 of " + where.getName() + "...";
 			if(expect_md5.equals(actual_md5)) {
-				u.addText(message + "pass");
+				caller.addText(message + "pass");
 				// Got the file
 				return where;
 			} else {
-				u.addText(message + "fail: " + actual_md5);
+				caller.addText(message + "fail: " + actual_md5);
 				// Fall-through to re-download
 				break;
 			}
@@ -213,14 +215,14 @@ public class DownloadHelper<T> {
 		// Update available!
 		final String name = vc.getChild("name").getString();
 		final String uri = vc.getChild("uri").getString();
-		new AlertDialog.Builder(u)
+		new AlertDialog.Builder(ctx)
 		.setTitle(R.string.update_available)
-		.setMessage("Version " + name + " of " + u.getString(R.string.app_label) + " is available")
+		.setMessage("Version " + name + " of " + ctx.getString(R.string.app_label) + " is available")
 		.setPositiveButton(
 				R.string.update_available_pos,
 				new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						u.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
+						ctx.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
 						System.exit(1);
 					}
 				}
