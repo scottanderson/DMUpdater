@@ -28,7 +28,7 @@ import android.widget.TextView;
 
 public class Updater extends Activity {
 	private DownloadHelper dh = null;
-	private String current_rom = null;
+	private int current_revision = -1;
 	private File flash_image = null;
 	private File recovery_image = null;
 	private RomDescriptor selected_rom = null;
@@ -43,8 +43,10 @@ public class Updater extends Activity {
 		try {
 			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
-			current_rom = p.getProperty("ro.build.display.id");
-			addText("Current ROM: " + current_rom);
+			addText("Current ROM: " + p.getProperty("ro.build.display.id"));
+			try {
+				current_revision = Integer.parseInt(p.getProperty("ro.info.sholes.revision"));
+			} catch(NumberFormatException e) {}
 
 			dh = new DownloadHelper(this);
 
@@ -359,7 +361,7 @@ public class Updater extends Activity {
 	}
 
 	private void sendRomMenuIntent() {
-		final List<RomDescriptor> roms = dh.getRoms(current_rom);
+		final List<RomDescriptor> roms = dh.getRoms(current_revision);
 
 		Intent i = new Intent(this, RomMenu.class);
 		i.putExtra("roms", roms.toArray(new RomDescriptor[roms.size()]));

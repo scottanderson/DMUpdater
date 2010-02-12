@@ -171,7 +171,7 @@ public class DownloadHelper {
 		return null;
 	}
 
-	public List<RomDescriptor> getRoms(String currentBuild) {
+	public List<RomDescriptor> getRoms(int currentRevision) {
 		List<RomDescriptor> roms = new ArrayList<RomDescriptor>();
 
 		XMLElementDecorator e_zips = xed.getChild("zips");
@@ -189,10 +189,14 @@ public class DownloadHelper {
 			for(XMLElementDecorator rom : e_roms.getChildren("rom")) {
 				String name = rom.getAttribute("name");
 				String dispid = rom.getAttribute("dispid");
+				int rev = -1;
+				try {
+					rev = Integer.parseInt(rom.getAttribute("revision"));
+				} catch(NumberFormatException e) {}
 				String url = rom.getChild("url").getString();
 				String md5 = rom.getChild("md5").getString();
-				int icon = R.drawable.sholesmod;
-				if((currentBuild != null) && currentBuild.equals(dispid))
+				int icon = R.drawable.sholes;
+				if((rev != -1) && (currentRevision == rev))
 					icon = R.drawable.current;
 				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, dispid, url, md5, icon));
 			}
