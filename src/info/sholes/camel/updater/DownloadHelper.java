@@ -15,7 +15,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class DownloadHelper {
+public class DownloadHelper<T> {
 	private static XMLElementDecorator xed = null;
 	private static void init(Context ctx) throws Exception {
 		if(xed == null) {
@@ -126,24 +126,24 @@ public class DownloadHelper {
 	}
 
 	private final Updater u;
-	private final DownloadUtil du;
+	private final DownloadUtil<T> du;
 	private int download_attempts = 0;
 
-	public DownloadHelper(Updater u) throws Exception {
+	public DownloadHelper(Updater u, Caller<T> caller) throws Exception {
 		init(u);
 		this.u = u;
-		du = new DownloadUtil(u);
+		du = new DownloadUtil<T>(u, caller);
 	}
 
 	public void resetDownloadAttempts() {
 		download_attempts = 0;
 	}
 
-	public File downloadFile(Downloadable which, File where, Callback cb) throws Exception {
+	public File downloadFile(Downloadable which, File where, T cb) throws Exception {
 		return downloadFile(which.getUrl(), which.getMd5(), where, cb);
 	}
 
-	private File downloadFile(String url, String expect_md5, File where, Callback cb) throws Exception {
+	public File downloadFile(String url, String expect_md5, File where, T cb) throws Exception {
 		while(where.exists()) {
 			String actual_md5;
 			try {
@@ -202,10 +202,6 @@ public class DownloadHelper {
 			}
 
 		return roms;
-	}
-
-	public File downloadRom(RomDescriptor rd, File rom_tgz) throws Exception {
-		return downloadFile(rd.url, rd.md5, rom_tgz, Callback.ROM_DOWNLOAD);
 	}
 
 	public boolean checkVersion(PackageInfo pi) {

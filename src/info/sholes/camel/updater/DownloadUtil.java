@@ -14,15 +14,17 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.text.format.Formatter;
 
-public class DownloadUtil {
+public class DownloadUtil<T> {
 
 	private final Updater u;
+	private final Caller<T> caller;
 
-	public DownloadUtil(Updater u) {
+	public DownloadUtil(Updater u, Caller<T> caller) {
 		this.u = u;
+		this.caller = caller;
 	}
 
-	public void downloadFile(File fout, URL url, Callback callback) throws Exception {
+	public void downloadFile(File fout, URL url, T callback) throws Exception {
 		URLConnection uc = url.openConnection();
 		int length = 0;
 		try {
@@ -32,7 +34,7 @@ public class DownloadUtil {
 		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback);
 	}
 
-	private void downloadFile(final File fout, String from, InputStream is, int filelen, final Callback callback) throws Exception {
+	private void downloadFile(final File fout, String from, InputStream is, int filelen, final T callback) throws Exception {
 		final OutputStream os = new FileOutputStream(fout);
 
 		String msg = fout.getName();
@@ -69,7 +71,7 @@ public class DownloadUtil {
 			protected void onPostExecute(Exception result) {
 				pd.hide();
 				if(result == null) {
-					u.callback(callback);
+					caller.callback(callback);
 				} else {
 					u.showException(result);
 				}

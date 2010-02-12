@@ -26,8 +26,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class Updater extends Activity {
-	private DownloadHelper dh = null;
+public class Updater extends Activity implements Caller<Updater.Callback> {
+	enum Callback {
+		ROOT,
+		FLASH_IMAGE_DOWNLOAD,
+		RECOVERY_IMAGE_DOWNLOAD,
+		ROM_DOWNLOAD
+	}
+
+	private DownloadHelper<Callback> dh = null;
 	private int current_revision = -1;
 	private File flash_image = null;
 	private File recovery_image = null;
@@ -48,7 +55,7 @@ public class Updater extends Activity {
 				current_revision = Integer.parseInt(p.getProperty("ro.info.sholes.revision"));
 			} catch(NumberFormatException e) {}
 
-			dh = new DownloadHelper(this);
+			dh = new DownloadHelper<Callback>(this, this);
 
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
@@ -412,7 +419,7 @@ public class Updater extends Activity {
 
 	private void doRomDownload() {
 		try {
-			File f = dh.downloadRom(selected_rom, rom_tgz);
+			File f = dh.downloadFile(selected_rom.url, selected_rom.md5, rom_tgz, Callback.ROM_DOWNLOAD);
 			if(f == null) {
 				// Wait for the callback
 				return;
@@ -486,7 +493,7 @@ public class Updater extends Activity {
 		addText(sw.toString());
 	}
 
-	protected void addText(String text) {
+	public void addText(String text) {
 		TextView tvText = new TextView(this);
 		tvText.setText(text);
 		LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
