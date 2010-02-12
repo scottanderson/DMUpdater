@@ -93,6 +93,7 @@ public class Updater extends Activity {
 			} else {
 				// Whoa! What happened?
 				showException(e);
+				notRooted();
 			}
 			return;
 		}
