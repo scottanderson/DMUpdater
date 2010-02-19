@@ -79,13 +79,15 @@ public class DownloadHelper<T> {
 	static class RomDescriptor implements Parcelable {
 		public final RomType type;
 		public final String name;
+		public final int revision;
 		public final String dispid;
 		public final String url;
 		public final String md5;
 		public final int icon;
-		private RomDescriptor(RomType type, String name, String dispid, String url, String md5, int icon) {
+		private RomDescriptor(RomType type, String name, int revision, String dispid, String url, String md5, int icon) {
 			this.type = type;
 			this.name = name;
+			this.revision = revision;
 			this.dispid = dispid;
 			this.url = url;
 			this.md5 = md5;
@@ -95,6 +97,7 @@ public class DownloadHelper<T> {
 		public RomDescriptor(Parcel in) {
 			this.type = RomType.values()[in.readInt()];
 			this.name = in.readString();
+			this.revision = in.readInt();
 			this.dispid = in.readString();
 			this.url = in.readString();
 			this.md5 = in.readString();
@@ -108,6 +111,7 @@ public class DownloadHelper<T> {
 		public void writeToParcel(Parcel dest, int flags) {
 			dest.writeInt(type.ordinal());
 			dest.writeString(name);
+			dest.writeInt(revision);
 			dest.writeString(dispid);
 			dest.writeString(url);
 			dest.writeString(md5);
@@ -183,7 +187,7 @@ public class DownloadHelper<T> {
 				String dispid = rom.getAttribute("dispid");
 				String url = rom.getChild("url").getString();
 				String md5 = rom.getChild("md5").getString();
-				roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, dispid, url, md5, R.drawable.stock));
+				roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, 0, dispid, url, md5, R.drawable.stock));
 			}
 
 		XMLElementDecorator e_roms = xed.getChild("roms");
@@ -200,10 +204,19 @@ public class DownloadHelper<T> {
 				int icon = R.drawable.sholes;
 				if((rev != -1) && (currentRevision == rev))
 					icon = R.drawable.current;
-				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, dispid, url, md5, icon));
+				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, rev, dispid, url, md5, icon));
 			}
 
 		return roms;
+	}
+
+	public RomDescriptor latestRom(int currentRevision) {
+		RomDescriptor latest = null;
+		for(RomDescriptor rd : getRoms(currentRevision)) {
+			if((latest == null) || (rd.revision > latest.revision))
+				latest = rd;
+		}
+		return latest;
 	}
 
 	public boolean checkVersion(PackageInfo pi) {

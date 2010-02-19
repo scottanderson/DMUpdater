@@ -76,6 +76,21 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			return;
 		}
 
+		RomDescriptor latest = dh.latestRom(current_revision);
+		if(latest.revision > current_revision) {
+			addText("Update available");
+		}
+
+		Button b = new Button(this);
+		b.setText("Latest ROM: " + latest.name);
+		b.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				sendRomMenuIntent();
+			}
+		});
+		LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
+		ll.addView(b);
+
 		String tmp = getFilesDir().getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
 		recovery_image = new File(tmp + "/recovery.img");
