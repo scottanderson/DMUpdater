@@ -17,6 +17,9 @@ import android.os.Parcelable;
 
 public class DownloadHelper<T> {
 	private static XMLElementDecorator xed = null;
+	public static void reset() {
+		xed = null;
+	}
 	private static void init(Context ctx) throws Exception {
 		if(xed == null) {
 			String url = ctx.getString(R.string.url_update);

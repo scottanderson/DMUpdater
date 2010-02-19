@@ -54,6 +54,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 				current_revision = Integer.parseInt(p.getProperty("ro.info.sholes.revision"));
 			} catch(NumberFormatException e) {}
 
+			DownloadHelper.reset();
 			dh = new DownloadHelper<Callback>(this, this);
 
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
