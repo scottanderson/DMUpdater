@@ -1,4 +1,4 @@
-package info.sholes.camel.updater;
+package org.droidmod.updater;
 
 public interface Caller<T> {
 

@@ -1,4 +1,4 @@
-package info.sholes.camel.updater;
+package org.droidmod.updater;
 
 import java.io.InputStream;
 import java.io.OutputStream;

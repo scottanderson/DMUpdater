@@ -1,4 +1,8 @@
-package info.sholes.camel.updater;
+package org.droidmod.updater;
+
+import org.droidmod.updater.R;
+import org.droidmod.updater.R.drawable;
+import org.droidmod.updater.R.string;
 
 import java.io.File;
 import java.net.URL;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="info.sholes.camel.updater"
+	package="org.droidmod.updater"
 	android:versionName="0.0.9"
 	android:versionCode="9">
 	<application
@@ -9,7 +9,7 @@
 		android:name="SholesModUpdater"
 		android:persistent="true">
 		<activity
-		    android:name="info.sholes.camel.updater.Updater"
+		    android:name="org.droidmod.updater.Updater"
 			android:label="@string/app_label"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout"
 			android:launchMode="singleInstance">
@@ -19,11 +19,11 @@
 			</intent-filter>
 		</activity>
 		<activity
-			android:name="info.sholes.camel.updater.RomMenu"
+			android:name="org.droidmod.updater.RomMenu"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout"
 			android:launchMode="singleInstance"	/>
 		<activity
-			android:name="info.sholes.camel.updater.RomDownload"
+			android:name="org.droidmod.updater.RomDownload"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout"
 			android:launchMode="singleInstance"	/>
 	</application>

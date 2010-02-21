@@ -1,4 +1,4 @@
-package info.sholes.camel.updater;
+package org.droidmod.updater;
 
 import java.util.ArrayList;
 import java.util.HashMap;

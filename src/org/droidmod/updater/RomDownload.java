@@ -1,10 +1,15 @@
-package info.sholes.camel.updater;
+package org.droidmod.updater;
 
-import info.sholes.camel.updater.DownloadHelper.RomDescriptor;
+import org.droidmod.updater.R;
+import org.droidmod.updater.R.id;
+import org.droidmod.updater.R.layout;
+import org.droidmod.updater.R.string;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
+import org.droidmod.updater.DownloadHelper.RomDescriptor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
