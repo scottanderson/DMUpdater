@@ -2,8 +2,6 @@ package org.droidmod.updater;
 
 import org.droidmod.updater.DownloadHelper.RomDescriptor;
 
-import org.droidmod.updater.R;
-import org.droidmod.updater.R.layout;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;

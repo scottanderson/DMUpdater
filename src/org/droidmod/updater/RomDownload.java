@@ -1,10 +1,5 @@
 package org.droidmod.updater;
 
-import org.droidmod.updater.R;
-import org.droidmod.updater.R.id;
-import org.droidmod.updater.R.layout;
-import org.droidmod.updater.R.string;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
