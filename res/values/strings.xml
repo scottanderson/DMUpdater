@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_label">SM Updater</string>
+	<string name="app_label">DM Updater</string>
 	<string name="droid_only">This application is only for the Motorola Droid. If you are truly using a Motorola Droid, you must return to stock Android 2.0.1 before running SM Updater.</string>
 	
 	<string name="url_update">http://downloads.droidmod.org/updater.xml</string>
