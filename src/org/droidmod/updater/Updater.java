@@ -39,6 +39,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 	private int current_revision = -1;
 	private File flash_image = null;
 	private File recovery_image = null;
+	private final Properties p = new Properties();
 
 	/** Called when the activity is first created. */
 	@Override
@@ -47,7 +48,6 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		setContentView(R.layout.main);
 
 		try {
-			Properties p = new Properties();
 			p.load(new FileInputStream("/system/build.prop"));
 			addText("Current ROM: " + p.getProperty("ro.build.display.id"));
 			try {
@@ -61,7 +61,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
 
 			String model = p.getProperty("ro.product.model");
-			if(!"Droid".equals(model) && !"Droid Sholes.info Edition".equals(model)) {
+			if(!"Droid".equals(model)) {
 				addText("Manufacturer: " + p.getProperty("ro.product.manufacturer"));
 				addText("Device: " + p.getProperty("ro.product.device"));
 				addText("Brand: " + p.getProperty("ro.product.brand"));
@@ -294,7 +294,27 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 				return;
 			} else {
 				addText(command + " = " + current_md5);
-				new AlertDialog.Builder(this)
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				boolean skip_flash = false;
+				try {
+					String prop = p.getProperty("org.droidmod.updater.skip_flash");
+					skip_flash = Boolean.parseBoolean(prop);
+				} catch(Exception e) {
+					Log.i("DMUpdater", "system property org.droidmod.updater.skip_flash invalid");
+				}
+				if(skip_flash) {
+					builder.setNeutralButton(
+							"Leave me alone",
+							new OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									dh.resetDownloadAttempts();
+									showRomMenu();
+								}
+							}
+					);
+				}
+				builder
 				.setMessage(R.string.confirm_flash_recovery)
 				.setCancelable(false)
 				.setPositiveButton(
