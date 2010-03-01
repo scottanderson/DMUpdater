@@ -77,20 +77,22 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			return;
 		}
 
-		RomDescriptor latest = dh.latestRom(current_revision);
+		final RomDescriptor latest = dh.latestRom(current_revision);
 		if(latest.revision > current_revision) {
 			addText("Update available");
-		}
 
-		Button b = new Button(this);
-		b.setText("Latest ROM: " + latest.name);
-		b.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				sendRomMenuIntent();
-			}
-		});
-		LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
-		ll.addView(b);
+			Button b = new Button(this);
+			b.setText("Latest ROM: " + latest.name);
+			b.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent i = new Intent(Updater.this, RomDownload.class);
+					i.putExtra("rom", latest);
+					startActivity(i);
+				}
+			});
+			LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
+			ll.addView(b);
+		}
 
 		String tmp = getFilesDir().getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
@@ -306,7 +308,6 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 					builder.setNeutralButton(
 							"Leave me alone",
 							new OnClickListener() {
-								@Override
 								public void onClick(DialogInterface dialog, int which) {
 									dh.resetDownloadAttempts();
 									showRomMenu();
