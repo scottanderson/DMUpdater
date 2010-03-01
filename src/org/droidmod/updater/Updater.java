@@ -96,7 +96,6 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 		String tmp = getFilesDir().getAbsolutePath();
 		flash_image = new File(tmp + "/flash_image");
-		recovery_image = new File(tmp + "/recovery.img");
 
 		checkRoot();
 	}
@@ -266,8 +265,8 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void doRecoveryImageDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.RECOVERY_IMAGE, recovery_image, Callback.RECOVERY_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
-			if(f == null) {
+			recovery_image = dh.downloadFile(Downloadable.RECOVERY_IMAGE, null, Callback.RECOVERY_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
+			if(recovery_image == null) {
 				// Wait for the callback
 				return;
 			}

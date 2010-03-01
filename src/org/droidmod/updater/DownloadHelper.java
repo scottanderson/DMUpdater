@@ -153,6 +153,12 @@ public class DownloadHelper<T> {
 	}
 
 	public File downloadFile(String url, String expect_md5, File where, T callback, T callback_cancel) throws Exception {
+		if(where == null) {
+			String w = url;
+			w = w.substring(w.lastIndexOf('/') + 1);
+			where = new File("/sdcard/" + w);
+		}
+
 		while(where.exists()) {
 			String actual_md5;
 			try {
