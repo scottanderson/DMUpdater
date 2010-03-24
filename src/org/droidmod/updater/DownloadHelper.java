@@ -41,7 +41,7 @@ public class DownloadHelper<T> {
 
 	enum Downloadable {
 		ROOT("root"),
-		FLASH_IMAGE("flash_image"),
+		RECOVERY_TOOLS("recovery_tools"),
 		RECOVERY_IMAGE("recovery");
 
 		private final String type;

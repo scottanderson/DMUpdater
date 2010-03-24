@@ -29,7 +29,7 @@ import android.widget.TextView;
 public class Updater extends Activity implements Caller<Updater.Callback> {
 	enum Callback {
 		ROOT,
-		FLASH_IMAGE_DOWNLOAD,
+		RECOVERY_TOOLS_DOWNLOAD,
 		RECOVERY_IMAGE_DOWNLOAD,
 		ROM_DOWNLOAD,
 		DOWNLOAD_CANCELLED
@@ -37,7 +37,9 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private DownloadHelper<Callback> dh = null;
 	private int current_revision = -1;
+	private File recovery_tools = null;
 	private File flash_image = null;
+	private File dump_image = null;
 	private File recovery_image = null;
 	private final Properties p = new Properties();
 
@@ -95,7 +97,9 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		}
 
 		String tmp = getFilesDir().getAbsolutePath();
+		recovery_tools = new File(tmp + "/recovery_tools");
 		flash_image = new File(tmp + "/flash_image");
+		dump_image = new File(tmp + "/dump_image");
 
 		checkRoot();
 	}
@@ -202,7 +206,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void enoughSpaceVerified() {
 		dh.resetDownloadAttempts();
-		doFlashImageDownload();
+		doRecoveryToolsDownload();
 	}
 
 	public void callback(Callback c) {
@@ -210,8 +214,8 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		case ROOT:
 			doRoot();
 			return;
-		case FLASH_IMAGE_DOWNLOAD:
-			doFlashImageDownload();
+		case RECOVERY_TOOLS_DOWNLOAD:
+			doRecoveryToolsDownload();
 			return;
 		case RECOVERY_IMAGE_DOWNLOAD:
 			doRecoveryImageDownload();
@@ -245,15 +249,17 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		.show();
 	}
 
-	private void doFlashImageDownload() {
+	private void doRecoveryToolsDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.FLASH_IMAGE, flash_image, Callback.FLASH_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
+			File f = dh.downloadFile(Downloadable.RECOVERY_TOOLS, recovery_tools, Callback.RECOVERY_TOOLS_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
 			if(f == null) {
 				// Wait for the callback
 				return;
 			}
 
-			Runtime.getRuntime().exec("chmod 755 " + flash_image.getAbsolutePath());
+			Runtime.getRuntime().exec("chmod 755 " + recovery_tools.getAbsolutePath());
+			Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + flash_image.getAbsolutePath());
+			Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + dump_image.getAbsolutePath());
 		} catch(Exception e) {
 			showException(e);
 			return;
