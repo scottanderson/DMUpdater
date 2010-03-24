@@ -79,23 +79,6 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			return;
 		}
 
-		final RomDescriptor latest = dh.latestRom(current_revision);
-		if(latest.revision > current_revision) {
-			addText("Update available");
-
-			Button b = new Button(this);
-			b.setText("Latest ROM: " + latest.name);
-			b.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					Intent i = new Intent(Updater.this, RomDownload.class);
-					i.putExtra("rom", latest);
-					startActivity(i);
-				}
-			});
-			LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
-			ll.addView(b);
-		}
-
 		String tmp = getFilesDir().getAbsolutePath();
 		recovery_tools = new File(tmp + "/recovery_tools");
 		flash_image = new File(tmp + "/flash_image");
@@ -397,6 +380,23 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 	}
 
 	private void showRomMenu() {
+		final RomDescriptor latest = dh.latestRom(current_revision);
+		if(latest.revision > current_revision) {
+			addText("Update available");
+
+			Button b = new Button(this);
+			b.setText("Latest ROM: " + latest.name);
+			b.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent i = new Intent(Updater.this, RomDownload.class);
+					i.putExtra("rom", latest);
+					startActivity(i);
+				}
+			});
+			LinearLayout ll = (LinearLayout) findViewById(R.id.LinearLayout01);
+			ll.addView(b);
+		}
+
 		Button b = new Button(this);
 		b.setText("ROM menu");
 		b.setOnClickListener(new View.OnClickListener() {
