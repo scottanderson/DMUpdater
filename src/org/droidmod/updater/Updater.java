@@ -291,8 +291,8 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			// Calculate md5 of the recovery block, mtdblock3
 			int length = (int)recovery_image.length();
 			// TODO: validate length <= the block size
-			String command = "dd if=/dev/block/mtdblock3 count=1 bs=" + length;
-			String current_md5 = SuperUser.oneShotMd5(command, length);
+			SuperUser.oneShot(dump_image.getAbsolutePath() + " recovery /sdcard/recovery-current.img");
+			String current_md5 = SuperUser.oneShotMd5("cat /sdcard/recovery-current.img", length);
 			String expected_md5 = Downloadable.RECOVERY_IMAGE.getMd5();
 
 			if(expected_md5.equals(current_md5)) {
@@ -300,7 +300,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 				showRomMenu();
 				return;
 			} else {
-				addText(command + " = " + current_md5);
+				addText("recovery = " + current_md5);
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				boolean skip_flash = false;
 				try {
