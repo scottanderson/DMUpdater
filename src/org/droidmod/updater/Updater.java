@@ -30,6 +30,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 	enum Callback {
 		ROOT,
 		RECOVERY_TOOLS_DOWNLOAD,
+		NANDDUMP_DOWNLOAD,
 		RECOVERY_IMAGE_DOWNLOAD,
 		ROM_DOWNLOAD,
 		DOWNLOAD_CANCELLED
@@ -40,6 +41,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 	private File recovery_tools = null;
 	private File flash_image = null;
 	private File dump_image = null;
+	private File nanddump = null;
 	private File recovery_image = null;
 	private final Properties p = new Properties();
 
@@ -83,6 +85,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		recovery_tools = new File(tmp + "/recovery_tools");
 		flash_image = new File(tmp + "/flash_image");
 		dump_image = new File(tmp + "/dump_image");
+		nanddump = new File(tmp + "/nanddump");
 
 		checkRoot();
 	}
@@ -200,6 +203,9 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		case RECOVERY_TOOLS_DOWNLOAD:
 			doRecoveryToolsDownload();
 			return;
+		case NANDDUMP_DOWNLOAD:
+			doNandDumpDownload();
+			return;
 		case RECOVERY_IMAGE_DOWNLOAD:
 			doRecoveryImageDownload();
 			return;
@@ -249,6 +255,24 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		}
 
 		dh.resetDownloadAttempts();
+		doNandDumpDownload();
+	}
+
+	private void doNandDumpDownload() {
+		try {
+			File f = dh.downloadFile(Downloadable.NANDDUMP, nanddump, Callback.NANDDUMP_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
+			if(f == null) {
+				// Wait for the callback
+				return;
+			}
+
+			Runtime.getRuntime().exec("chmod 755 " + nanddump.getAbsolutePath());
+		} catch(Exception e) {
+			showException(e);
+			return;
+		}
+
+		dh.resetDownloadAttempts();
 		doRecoveryImageDownload();
 	}
 
@@ -274,16 +298,18 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			// Calculate md5 of the recovery block, mtdblock3
 			int length = (int)recovery_image.length();
 			// TODO: validate length <= the block size
-			SuperUser.oneShot(dump_image.getAbsolutePath() + " recovery /sdcard/recovery-current.img");
-			String current_md5 = SuperUser.oneShotMd5("cat /sdcard/recovery-current.img", length);
+			String command = nanddump.getAbsolutePath() + " -obql " + length + " /dev/mtd/mtd3ro";
+			String current_md5 = SuperUser.oneShotMd5(command, length);
 			String expected_md5 = Downloadable.RECOVERY_IMAGE.getMd5();
 
+			String message = "Calculating md5 of /dev/mtd/mtd3ro...";
 			if(expected_md5.equals(current_md5)) {
+				addText(message + "pass");
 				dh.resetDownloadAttempts();
 				showRomMenu();
 				return;
 			} else {
-				addText("recovery = " + current_md5);
+				addText(message + "fail: " + current_md5);
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				boolean skip_flash = false;
 				try {

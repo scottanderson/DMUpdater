@@ -42,6 +42,7 @@ public class DownloadHelper<T> {
 	enum Downloadable {
 		ROOT("root"),
 		RECOVERY_TOOLS("recovery_tools"),
+		NANDDUMP("nanddump"),
 		RECOVERY_IMAGE("recovery");
 
 		private final String type;
