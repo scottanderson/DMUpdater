@@ -70,7 +70,7 @@ public class DownloadUtil<T> {
 
 			@Override
 			protected void onPostExecute(Exception result) {
-				pd.hide();
+				pd.dismiss();
 				if(result == null) {
 					caller.callback(callback);
 				} else {
