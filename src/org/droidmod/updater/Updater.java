@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.Log;
@@ -192,30 +193,40 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void enoughSpaceVerified() {
 		dh.resetDownloadAttempts();
-		doRecoveryToolsDownload();
+		callback(Callback.RECOVERY_TOOLS_DOWNLOAD);
 	}
 
 	public void callback(Callback c) {
-		switch(c) {
-		case ROOT:
-			doRoot();
-			return;
-		case RECOVERY_TOOLS_DOWNLOAD:
-			doRecoveryToolsDownload();
-			return;
-		case NANDDUMP_DOWNLOAD:
-			doNandDumpDownload();
-			return;
-		case RECOVERY_IMAGE_DOWNLOAD:
-			doRecoveryImageDownload();
-			return;
-		case DOWNLOAD_CANCELLED:
-			finish();
-			return;
-		default:
-			addText("Unknown callback: " + c.name());
-			return;
-		}
+		new AsyncTask<Callback, Object, Callback>() {
+			@Override
+			protected Callback doInBackground(Callback... params) {
+				return params[0];
+			}
+
+			@Override
+			protected void onPostExecute(Callback c) {
+				switch(c) {
+				case ROOT:
+					doRoot();
+					return;
+				case RECOVERY_TOOLS_DOWNLOAD:
+					doRecoveryToolsDownload();
+					return;
+				case NANDDUMP_DOWNLOAD:
+					doNandDumpDownload();
+					return;
+				case RECOVERY_IMAGE_DOWNLOAD:
+					doRecoveryImageDownload();
+					return;
+				case DOWNLOAD_CANCELLED:
+					finish();
+					return;
+				default:
+					addText("Unknown callback: " + c.name());
+					return;
+				}
+			};
+		}.execute(c);
 	}
 
 	private void doRoot() {
@@ -255,7 +266,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		}
 
 		dh.resetDownloadAttempts();
-		doNandDumpDownload();
+		callback(Callback.NANDDUMP_DOWNLOAD);
 	}
 
 	private void doNandDumpDownload() {
@@ -273,7 +284,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		}
 
 		dh.resetDownloadAttempts();
-		doRecoveryImageDownload();
+		callback(Callback.RECOVERY_IMAGE_DOWNLOAD);
 	}
 
 	private void doRecoveryImageDownload() {
