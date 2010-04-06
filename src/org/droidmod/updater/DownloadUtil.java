@@ -122,18 +122,24 @@ public class DownloadUtil<T> {
 		byte[] buffer = new byte[1024];
 		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
 		int total = 0;
-		while((bytes_read = is.read(buffer)) > 0) {
+		while((bytes_read = is.read(buffer)) >= 0) {
+			if(bytes_read == 0) {
+				Thread.sleep(50);
+				Thread.yield();
+				continue;
+			}
+
 			digest.update(buffer, 0, bytes_read);
 
 			total += bytes_read;
 			if(total >= length) {
 				if(total == length)
 					break;
-				throw new RuntimeException("too much");
+				throw new RuntimeException("too much (" + total + "/" + length + ")");
 			}
 		}
 		if(total < length)
-			throw new RuntimeException("not enough");
+			throw new RuntimeException("not enough (" + total + "/" + length + ")");
 		byte[] hash = digest.digest();
 		String md5 = "";
 		for(byte h : hash)
