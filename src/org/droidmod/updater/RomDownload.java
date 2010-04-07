@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.droidmod.updater.DownloadHelper.DownloadCallback;
 import org.droidmod.updater.DownloadHelper.RomDescriptor;
 
 import android.app.Activity;
@@ -15,13 +16,8 @@ import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class RomDownload extends Activity implements Caller<RomDownload.Callback> {
-	enum Callback {
-		ROM_DOWNLOAD,
-		DOWNLOAD_CANCELLED
-	}
-
-	private DownloadHelper<Callback> dh = null;
+public class RomDownload extends Activity implements Caller {
+	private DownloadHelper dh = null;
 	private RomDescriptor selected_rom = null;
 	private File rom_tgz = null;
 
@@ -32,7 +28,7 @@ public class RomDownload extends Activity implements Caller<RomDownload.Callback
 		setContentView(R.layout.main);
 
 		try {
-			dh = new DownloadHelper<Callback>(this, this);
+			dh = new DownloadHelper(this, this);
 		} catch (Exception e) {
 			showException(e);
 			return;
@@ -87,29 +83,17 @@ public class RomDownload extends Activity implements Caller<RomDownload.Callback
 		doRomDownload();
 	}
 
-	public void callback(Callback c) {
-		switch(c) {
-		case ROM_DOWNLOAD:
-			doRomDownload();
-			return;
-		case DOWNLOAD_CANCELLED:
-			finish();
-			return;
-		default:
-			addText("Unknown callback: " + c.name());
-			return;
-		}
-	}
-
 	private void doRomDownload() {
 		try {
-			File f = dh.downloadFile(selected_rom.url, selected_rom.md5, rom_tgz, Callback.ROM_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
-			if(f == null) {
-				// Wait for the callback
-				return;
-			}
+			dh.downloadFile(selected_rom.url, selected_rom.md5, rom_tgz, new DownloadCallback() {
+				public void onSuccess(File f) {
+					doRomInstall(f);
+				}
 
-			doRomInstall(f);
+				public void onCancelled() {
+					finish();
+				}
+			});
 		} catch(Exception e) {
 			showException(e);
 			return;

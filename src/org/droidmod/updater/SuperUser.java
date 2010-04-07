@@ -65,7 +65,7 @@ public class SuperUser {
 		return output;
 	}
 
-	public static <T> void oneShotMd5(String description, String command, int length, DownloadUtil<T> du, MD5Callback callback) throws Exception {
+	public static <T> void oneShotMd5(String description, String command, int length, DownloadUtil du, MD5Callback callback) throws Exception {
 		SuperUser su = new SuperUser();
 		su.in.write(command);
 		su.in.newLine();

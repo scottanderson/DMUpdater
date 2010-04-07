@@ -15,7 +15,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class DownloadHelper<T> {
+public class DownloadHelper {
 	private static XMLElementDecorator xed = null;
 	public static void reset() {
 		xed = null;
@@ -133,27 +133,32 @@ public class DownloadHelper<T> {
 		};
 	}
 
+	public interface DownloadCallback {
+		public void onSuccess(File f);
+		public void onCancelled();
+	}
+
 	private final Context ctx;
-	private final Caller<T> caller;
-	public final DownloadUtil<T> du;
+	private final Caller caller;
+	public final DownloadUtil du;
 	private int download_attempts = 0;
 
-	public DownloadHelper(Context u, Caller<T> caller) throws Exception {
+	public DownloadHelper(Context u, Caller caller) throws Exception {
 		init(u);
 		this.ctx = u;
 		this.caller = caller;
-		du = new DownloadUtil<T>(u, caller);
+		du = new DownloadUtil(u, caller);
 	}
 
 	public void resetDownloadAttempts() {
 		download_attempts = 0;
 	}
 
-	public File downloadFile(Downloadable which, File where, T callback, T callback_cancel) throws Exception {
-		return downloadFile(which.getUrl(), which.getMd5(), where, callback, callback_cancel);
+	public void downloadFile(Downloadable which, File where, DownloadCallback callback) throws Exception {
+		downloadFile(which.getUrl(), which.getMd5(), where, callback);
 	}
 
-	public File downloadFile(String url, String expect_md5, File where, T callback, T callback_cancel) throws Exception {
+	public void downloadFile(String url, String expect_md5, File where, DownloadCallback callback) throws Exception {
 		if(where == null) {
 			String w = url;
 			w = w.substring(w.lastIndexOf('/') + 1);
@@ -172,7 +177,8 @@ public class DownloadHelper<T> {
 			if(expect_md5.equals(actual_md5)) {
 				caller.addText(message + "pass");
 				// Got the file
-				return where;
+				callback.onSuccess(where);
+				return;
 			} else {
 				caller.addText(message + "fail: " + actual_md5);
 				// Fall-through to re-download
@@ -183,8 +189,7 @@ public class DownloadHelper<T> {
 		download_attempts++;
 		if(download_attempts >= 3)
 			throw new Exception("Failed to download " + url);
-		du.downloadFile(where, new URL(url), callback, callback_cancel);
-		return null;
+		du.downloadFile(where, new URL(url), callback);
 	}
 
 	public List<RomDescriptor> getRoms(int currentRevision) {

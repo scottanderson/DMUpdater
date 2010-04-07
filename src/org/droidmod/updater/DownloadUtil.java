@@ -9,6 +9,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 
+import org.droidmod.updater.DownloadHelper.DownloadCallback;
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +18,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.AsyncTask;
 import android.text.format.Formatter;
 
-public class DownloadUtil<T> {
+public class DownloadUtil {
 
 	public interface MD5Callback {
 		public void onSuccess(String md5);
@@ -24,24 +26,24 @@ public class DownloadUtil<T> {
 	}
 
 	private final Context ctx;
-	private final Caller<T> caller;
+	private final Caller caller;
 
-	public DownloadUtil(Context u, Caller<T> caller) {
+	public DownloadUtil(Context u, Caller caller) {
 		this.ctx = u;
 		this.caller = caller;
 	}
 
-	public void downloadFile(File fout, URL url, T callback, T callback_cancel) throws Exception {
+	public void downloadFile(File fout, URL url, DownloadCallback callback) throws Exception {
 		URLConnection uc = url.openConnection();
 		int length = 0;
 		try {
 			length = Integer.parseInt(uc.getHeaderField("content-length"));
 		} catch(Exception e) {}
 		caller.addText("Downloading " + url.toString());
-		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback, callback_cancel);
+		downloadFile(fout, url.toString(), uc.getInputStream(), length, callback);
 	}
 
-	private void downloadFile(final File fout, String from, InputStream is, int filelen, final T callback, final T callback_cancel) throws Exception {
+	private void downloadFile(final File fout, String from, InputStream is, int filelen, final DownloadCallback callback) throws Exception {
 		final OutputStream os = new FileOutputStream(fout);
 
 		String msg = fout.getName();
@@ -77,11 +79,14 @@ public class DownloadUtil<T> {
 			@Override
 			protected void onPostExecute(Exception result) {
 				pd.dismiss();
-				if(result == null) {
-					caller.callback(callback);
-				} else {
-					caller.showException(result);
-				}
+				callback.onSuccess(fout);
+			}
+
+			@Override
+			protected void onCancelled() {
+				pd.dismiss();
+				fout.delete();
+				callback.onCancelled();
 			}
 		};
 
@@ -96,9 +101,6 @@ public class DownloadUtil<T> {
 		pd.setButton("Cancel", new OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				dt.cancel(true);
-				pd.hide();
-				fout.delete();
-				caller.callback(callback_cancel);
 			}});
 		pd.setCancelable(false);
 		pd.show();

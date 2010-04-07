@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Properties;
 
+import org.droidmod.updater.DownloadHelper.DownloadCallback;
 import org.droidmod.updater.DownloadHelper.Downloadable;
 import org.droidmod.updater.DownloadHelper.RomDescriptor;
 import org.droidmod.updater.DownloadUtil.MD5Callback;
@@ -28,7 +29,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class Updater extends Activity implements Caller<Updater.Callback> {
+public class Updater extends Activity implements Caller {
 	enum Callback {
 		ROOT,
 		RECOVERY_TOOLS_DOWNLOAD,
@@ -38,7 +39,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 		DOWNLOAD_CANCELLED
 	}
 
-	private DownloadHelper<Callback> dh = null;
+	private DownloadHelper dh = null;
 	private int current_revision = -1;
 	private File recovery_tools = null;
 	private File flash_image = null;
@@ -61,7 +62,7 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			} catch(NumberFormatException e) {}
 
 			DownloadHelper.reset();
-			dh = new DownloadHelper<Callback>(this, this);
+			dh = new DownloadHelper(this, this);
 
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 			addText("Version: " + pi.versionCode + " (" + pi.versionName + ")");
@@ -232,75 +233,94 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 
 	private void doRoot() {
 		try {
-			File f = dh.downloadFile(Downloadable.ROOT, new File("/sdcard/update.zip"), Callback.ROOT, Callback.DOWNLOAD_CANCELLED);
-			if(f == null) {
-				// Wait for the callback
-				return;
-			}
+			dh.downloadFile(Downloadable.ROOT, new File("/sdcard/update.zip"), new DownloadCallback() {
+				public void onSuccess(File f) {
+					addText(getString(R.string.exploit_ready));
+					// Display a pop-up explaining how to root
+					new AlertDialog.Builder(Updater.this)
+					.setMessage(R.string.reboot_recovery)
+					.setCancelable(false)
+					.show();
+				}
+
+				public void onCancelled() {
+					finish();
+				}
+			});
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
-
-		addText(getString(R.string.exploit_ready));
-		// Display a pop-up explaining how to root
-		new AlertDialog.Builder(this)
-		.setMessage(R.string.reboot_recovery)
-		.setCancelable(false)
-		.show();
 	}
 
 	private void doRecoveryToolsDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.RECOVERY_TOOLS, recovery_tools, Callback.RECOVERY_TOOLS_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
-			if(f == null) {
-				// Wait for the callback
-				return;
-			}
+			dh.downloadFile(Downloadable.RECOVERY_TOOLS, recovery_tools, new DownloadCallback() {
+				public void onSuccess(File f) {
+					try {
+						Runtime.getRuntime().exec("chmod 755 " + recovery_tools.getAbsolutePath());
+						Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + flash_image.getAbsolutePath());
+						Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + dump_image.getAbsolutePath());
+					} catch(Exception e) {
+						showException(e);
+						return;
+					}
 
-			Runtime.getRuntime().exec("chmod 755 " + recovery_tools.getAbsolutePath());
-			Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + flash_image.getAbsolutePath());
-			Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + dump_image.getAbsolutePath());
+					dh.resetDownloadAttempts();
+					callback(Callback.NANDDUMP_DOWNLOAD);
+				}
+
+				public void onCancelled() {
+					finish();
+				}
+			});
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
-
-		dh.resetDownloadAttempts();
-		callback(Callback.NANDDUMP_DOWNLOAD);
 	}
 
 	private void doNandDumpDownload() {
 		try {
-			File f = dh.downloadFile(Downloadable.NANDDUMP, nanddump, Callback.NANDDUMP_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
-			if(f == null) {
-				// Wait for the callback
-				return;
-			}
+			dh.downloadFile(Downloadable.NANDDUMP, nanddump, new DownloadCallback() {
+				public void onSuccess(File f) {
+					try {
+						Runtime.getRuntime().exec("chmod 755 " + nanddump.getAbsolutePath());
+					} catch(Exception e) {
+						showException(e);
+						return;
+					}
+					dh.resetDownloadAttempts();
+					callback(Callback.RECOVERY_IMAGE_DOWNLOAD);
+				}
 
-			Runtime.getRuntime().exec("chmod 755 " + nanddump.getAbsolutePath());
+				public void onCancelled() {
+					finish();
+				}
+			});
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
 
-		dh.resetDownloadAttempts();
-		callback(Callback.RECOVERY_IMAGE_DOWNLOAD);
 	}
 
 	private void doRecoveryImageDownload() {
 		try {
-			recovery_image = dh.downloadFile(Downloadable.RECOVERY_IMAGE, null, Callback.RECOVERY_IMAGE_DOWNLOAD, Callback.DOWNLOAD_CANCELLED);
-			if(recovery_image == null) {
-				// Wait for the callback
-				return;
-			}
+			dh.downloadFile(Downloadable.RECOVERY_IMAGE, null, new DownloadCallback() {
+				public void onSuccess(File f) {
+					recovery_image = f;
+					doFlashRecovery();
+				}
+
+				public void onCancelled() {
+					finish();
+				}
+			});
 		} catch(Exception e) {
 			showException(e);
 			return;
 		}
-
-		doFlashRecovery();
 	}
 
 	private void doFlashRecovery() {
