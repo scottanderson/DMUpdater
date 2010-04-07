@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
+import org.droidmod.updater.DownloadUtil.MD5Callback;
+
 public class SuperUser {
 	private final Process p;
 	private final BufferedWriter in;
@@ -63,7 +65,7 @@ public class SuperUser {
 		return output;
 	}
 
-	public static String oneShotMd5(String command, int length) throws Exception {
+	public static <T> void oneShotMd5(String description, String command, int length, DownloadUtil<T> du, MD5Callback callback) throws Exception {
 		SuperUser su = new SuperUser();
 		su.in.write(command);
 		su.in.newLine();
@@ -71,7 +73,7 @@ public class SuperUser {
 		su.in.newLine();
 		su.in.flush();
 
-		return DownloadUtil.md5(su.p.getInputStream(), length);
+		du.md5(description, su.p.getInputStream(), length, callback);
 	}
 
 	private SuperUser() throws Exception {

@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.droidmod.updater.DownloadHelper.Downloadable;
 import org.droidmod.updater.DownloadHelper.RomDescriptor;
+import org.droidmod.updater.DownloadUtil.MD5Callback;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -310,59 +311,71 @@ public class Updater extends Activity implements Caller<Updater.Callback> {
 			int length = (int)recovery_image.length();
 			// TODO: validate length <= the block size
 			String command = nanddump.getAbsolutePath() + " -obql " + length + " /dev/mtd/mtd3ro";
-			String current_md5 = SuperUser.oneShotMd5(command, length);
-			String expected_md5 = Downloadable.RECOVERY_IMAGE.getMd5();
+			SuperUser.oneShotMd5("/dev/mtd/mtd3ro", command, length, dh.du, new MD5Callback() {
+				public void onSuccess(String current_md5) {
+					try {
+						String expected_md5 = Downloadable.RECOVERY_IMAGE.getMd5();
 
-			String message = "Calculating md5 of /dev/mtd/mtd3ro...";
-			if(expected_md5.equals(current_md5)) {
-				addText(message + "pass");
-				dh.resetDownloadAttempts();
-				showRomMenu();
-				return;
-			} else {
-				addText(message + "fail: " + current_md5);
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				boolean skip_flash = false;
-				try {
-					String prop = p.getProperty("org.droidmod.updater.skip_flash");
-					skip_flash = Boolean.parseBoolean(prop);
-				} catch(Exception e) {
-					Log.i("DMUpdater", "system property org.droidmod.updater.skip_flash invalid");
-				}
-				if(skip_flash) {
-					builder.setNeutralButton(
-							"Leave me alone",
-							new OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									dh.resetDownloadAttempts();
-									showRomMenu();
-								}
+						String message = "Calculating md5 of /dev/mtd/mtd3ro...";
+						if(expected_md5.equals(current_md5)) {
+							addText(message + "pass");
+							dh.resetDownloadAttempts();
+							showRomMenu();
+							return;
+						} else {
+							addText(message + "fail: " + current_md5);
+							AlertDialog.Builder builder = new AlertDialog.Builder(Updater.this);
+							boolean skip_flash = false;
+							try {
+								String prop = p.getProperty("org.droidmod.updater.skip_flash");
+								skip_flash = Boolean.parseBoolean(prop);
+							} catch(Exception e) {
+								Log.i("DMUpdater", "system property org.droidmod.updater.skip_flash invalid");
 							}
-					);
-				}
-				builder
-				.setMessage(R.string.confirm_flash_recovery)
-				.setCancelable(false)
-				.setPositiveButton(
-						R.string.confirm_flash_recovery_yes,
-						new OnClickListener() {
-							public void onClick(DialogInterface dialog, int which) {
-								confirmFlashRecovery();
+							if(skip_flash) {
+								builder.setNeutralButton(
+										"Leave me alone",
+										new OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												dh.resetDownloadAttempts();
+												showRomMenu();
+											}
+										}
+								);
 							}
+							builder
+							.setMessage(R.string.confirm_flash_recovery)
+							.setCancelable(false)
+							.setPositiveButton(
+									R.string.confirm_flash_recovery_yes,
+									new OnClickListener() {
+										public void onClick(DialogInterface dialog, int which) {
+											confirmFlashRecovery();
+										}
+									}
+							)
+							.setNegativeButton(
+									R.string.confirm_flash_recovery_no,
+									new OnClickListener() {
+										public void onClick(DialogInterface dialog, int which) {
+											System.exit(1);
+										}
+									}
+							)
+							.show();
+							return;
 						}
-				)
-				.setNegativeButton(
-						R.string.confirm_flash_recovery_no,
-						new OnClickListener() {
-							public void onClick(DialogInterface dialog, int which) {
-								System.exit(1);
-							}
-						}
-				)
-				.show();
-				return;
-			}
-		} catch (Exception e) {
+					} catch (Exception e) {
+						showException(e);
+						return;
+					}
+				}
+
+				public void onFailure(Throwable t) {
+					showException(t);
+				}
+			});
+		} catch(Exception e) {
 			showException(e);
 			return;
 		}

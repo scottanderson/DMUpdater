@@ -13,9 +13,15 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.os.AsyncTask;
 import android.text.format.Formatter;
 
 public class DownloadUtil<T> {
+
+	public interface MD5Callback {
+		public void onSuccess(String md5);
+		public void onFailure(Throwable t);
+	}
 
 	private final Context ctx;
 	private final Caller<T> caller;
@@ -117,34 +123,79 @@ public class DownloadUtil<T> {
 		return md5;
 	}
 
-	public static String md5(InputStream is, int length) throws Exception {
-		int bytes_read;
-		byte[] buffer = new byte[1024];
-		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-		int total = 0;
-		while((bytes_read = is.read(buffer)) >= 0) {
-			if(bytes_read == 0) {
-				Thread.sleep(50);
-				Thread.yield();
-				continue;
+	public void md5(String description, final InputStream is, final int length, final MD5Callback callback) {
+		final ProgressDialog pd = new ProgressDialog(ctx);
+		pd.setTitle("Verifying");
+		pd.setMessage(description);
+		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		pd.setMax(length);
+		pd.setCancelable(false);
+		pd.show();
+
+		new AsyncTask<Object, Integer, Object>() {
+			@Override
+			protected Object doInBackground(Object... params) {
+				try {
+					int bytes_read;
+					byte[] buffer = new byte[1024];
+					MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+					int total = 0;
+					int progress = 0;
+					final int progress_threshold = length / 200;
+
+					while((bytes_read = is.read(buffer)) >= 0) {
+						if(bytes_read == 0) {
+							Thread.sleep(50);
+							Thread.yield();
+							continue;
+						}
+
+						digest.update(buffer, 0, bytes_read);
+
+						progress += bytes_read;
+						if(progress > progress_threshold) {
+							publishProgress(new Integer(progress));
+							progress = 0;
+						}
+
+						total += bytes_read;
+						if(total >= length) {
+							if(total == length)
+								break;
+							throw new RuntimeException("too much (" + total + "/" + length + ")");
+						}
+					}
+					if(progress > 0)
+						publishProgress(new Integer(progress));
+
+					if(total < length)
+						throw new RuntimeException("not enough (" + total + "/" + length + ")");
+					byte[] hash = digest.digest();
+					String md5 = "";
+					for(byte h : hash)
+						md5 += toHex(h);
+					return md5;
+				} catch(Exception e) {
+					return e;
+				}
 			}
 
-			digest.update(buffer, 0, bytes_read);
-
-			total += bytes_read;
-			if(total >= length) {
-				if(total == length)
-					break;
-				throw new RuntimeException("too much (" + total + "/" + length + ")");
+			@Override
+			protected void onProgressUpdate(Integer... values) {
+				for(Integer v : values)
+					pd.incrementProgressBy(v.intValue());
 			}
-		}
-		if(total < length)
-			throw new RuntimeException("not enough (" + total + "/" + length + ")");
-		byte[] hash = digest.digest();
-		String md5 = "";
-		for(byte h : hash)
-			md5 += toHex(h);
-		return md5;
+
+			@Override
+			protected void onPostExecute(Object result) {
+				pd.dismiss();
+				if(result instanceof Throwable)
+					callback.onFailure((Throwable)result);
+				else
+					callback.onSuccess((String)result);
+			}
+
+		}.execute();
 	}
 
 	private static String toHex(byte h) {

@@ -135,7 +135,7 @@ public class DownloadHelper<T> {
 
 	private final Context ctx;
 	private final Caller<T> caller;
-	private final DownloadUtil<T> du;
+	public final DownloadUtil<T> du;
 	private int download_attempts = 0;
 
 	public DownloadHelper(Context u, Caller<T> caller) throws Exception {
