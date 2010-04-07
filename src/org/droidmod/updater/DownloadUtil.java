@@ -2,6 +2,7 @@ package org.droidmod.updater;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -108,21 +109,8 @@ public class DownloadUtil {
 		dt.execute(is, os);
 	}
 
-	public static String md5(File f) throws Exception {
-		return md5(new FileInputStream(f));
-	}
-
-	public static String md5(InputStream is) throws Exception {
-		int bytes_read;
-		byte[] buffer = new byte[1024];
-		MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-		while((bytes_read = is.read(buffer)) > 0)
-			digest.update(buffer, 0, bytes_read);
-		byte[] hash = digest.digest();
-		String md5 = "";
-		for(byte h : hash)
-			md5 += toHex(h);
-		return md5;
+	public void md5(File f, MD5Callback callback) throws FileNotFoundException {
+		md5(f.getName(), new FileInputStream(f), (int) f.length(), callback);
 	}
 
 	public void md5(String description, final InputStream is, final int length, final MD5Callback callback) {

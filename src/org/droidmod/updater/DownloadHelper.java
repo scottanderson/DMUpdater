@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.droidmod.updater.DownloadUtil.MD5Callback;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -158,34 +160,49 @@ public class DownloadHelper {
 		downloadFile(which.getUrl(), which.getMd5(), where, callback);
 	}
 
-	public void downloadFile(String url, String expect_md5, File where, DownloadCallback callback) throws Exception {
+	public void downloadFile(final String url, final String expect_md5, File where, final DownloadCallback callback) throws Exception {
 		if(where == null) {
 			String w = url;
 			w = w.substring(w.lastIndexOf('/') + 1);
 			where = new File("/sdcard/" + w);
 		}
 
-		while(where.exists()) {
-			String actual_md5;
-			try {
-				actual_md5 = DownloadUtil.md5(where);
-			} catch (Exception e) {
-				// Re-download
-				break;
-			}
-			String message = "Calculating md5 of " + where.getName() + "...";
-			if(expect_md5.equals(actual_md5)) {
-				caller.addText(message + "pass");
-				// Got the file
-				callback.onSuccess(where);
-				return;
-			} else {
-				caller.addText(message + "fail: " + actual_md5);
-				// Fall-through to re-download
-				break;
-			}
-		}
+		doDownloadFile(url, expect_md5, where, callback);
+	}
+	private void doDownloadFile(final String url, final String expect_md5, final File where, final DownloadCallback callback) throws Exception {
+		if(where.exists()) {
+			du.md5(where, new MD5Callback() {
+				public void onSuccess(String actual_md5) {
+					String message = "Calculating md5 of " + where.getName() + "...";
+					if(expect_md5.equals(actual_md5)) {
+						caller.addText(message + "pass");
+						// Got the file
+						callback.onSuccess(where);
+						return;
+					} else {
+						caller.addText(message + "fail: " + actual_md5);
 
+						// Re-download
+						try {
+							download_attempts++;
+							reDownload(url, where, callback);
+						} catch(Exception e) {
+							caller.showException(e);
+							return;
+						}
+					}
+				}
+
+				public void onFailure(Throwable t) {
+					caller.showException(t);
+				}
+			});
+		} else {
+			reDownload(url, where, callback);
+		}
+	}
+
+	private void reDownload(final String url, File where, final DownloadCallback callback) throws Exception {
 		download_attempts++;
 		if(download_attempts >= 3)
 			throw new Exception("Failed to download " + url);

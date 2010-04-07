@@ -30,13 +30,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class Updater extends Activity implements Caller {
-	enum Callback {
-		ROOT,
+	enum AsyncCall {
 		RECOVERY_TOOLS_DOWNLOAD,
 		NANDDUMP_DOWNLOAD,
 		RECOVERY_IMAGE_DOWNLOAD,
-		ROM_DOWNLOAD,
-		DOWNLOAD_CANCELLED
 	}
 
 	private DownloadHelper dh = null;
@@ -195,22 +192,19 @@ public class Updater extends Activity implements Caller {
 
 	private void enoughSpaceVerified() {
 		dh.resetDownloadAttempts();
-		callback(Callback.RECOVERY_TOOLS_DOWNLOAD);
+		callAsync(AsyncCall.RECOVERY_TOOLS_DOWNLOAD);
 	}
 
-	public void callback(Callback c) {
-		new AsyncTask<Callback, Object, Callback>() {
+	public void callAsync(AsyncCall c) {
+		new AsyncTask<AsyncCall, Object, AsyncCall>() {
 			@Override
-			protected Callback doInBackground(Callback... params) {
+			protected AsyncCall doInBackground(AsyncCall... params) {
 				return params[0];
 			}
 
 			@Override
-			protected void onPostExecute(Callback c) {
+			protected void onPostExecute(AsyncCall c) {
 				switch(c) {
-				case ROOT:
-					doRoot();
-					return;
 				case RECOVERY_TOOLS_DOWNLOAD:
 					doRecoveryToolsDownload();
 					return;
@@ -219,9 +213,6 @@ public class Updater extends Activity implements Caller {
 					return;
 				case RECOVERY_IMAGE_DOWNLOAD:
 					doRecoveryImageDownload();
-					return;
-				case DOWNLOAD_CANCELLED:
-					finish();
 					return;
 				default:
 					addText("Unknown callback: " + c.name());
@@ -267,7 +258,7 @@ public class Updater extends Activity implements Caller {
 					}
 
 					dh.resetDownloadAttempts();
-					callback(Callback.NANDDUMP_DOWNLOAD);
+					callAsync(AsyncCall.NANDDUMP_DOWNLOAD);
 				}
 
 				public void onCancelled() {
@@ -291,7 +282,7 @@ public class Updater extends Activity implements Caller {
 						return;
 					}
 					dh.resetDownloadAttempts();
-					callback(Callback.RECOVERY_IMAGE_DOWNLOAD);
+					callAsync(AsyncCall.RECOVERY_IMAGE_DOWNLOAD);
 				}
 
 				public void onCancelled() {
