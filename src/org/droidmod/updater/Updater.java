@@ -155,7 +155,7 @@ public class Updater extends Activity implements Caller {
 	private void rootVerified() {
 		// They have root, check if /sdcard is mounted
 		try {
-			String mounts = SuperUser.oneShot("/system/bin/toolbox mount");
+			String mounts = SuperUser.oneShot("mount");
 			if(mounts.contains(" /sdcard ")) {
 				rootAndSdcardVerified();
 				return;
