@@ -91,7 +91,15 @@ public class Updater extends Activity implements Caller {
 	}
 
 	private void checkRoot() {
-		if(!new File("/system/bin/su").exists()) {
+		boolean foundRoot = false;
+		String path = System.getenv("PATH");
+		for(String pe : path.split(":")) {
+			if(new File(pe + "/su").exists()) {
+				foundRoot = true;
+				break;
+			}
+		}
+		if(!foundRoot) {
 			notRooted();
 			return;
 		}

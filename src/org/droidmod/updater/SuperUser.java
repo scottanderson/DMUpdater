@@ -94,7 +94,11 @@ public class SuperUser {
 			else
 				error += "\n" + line;
 		}
-		if((error != null) && (error.length() > 0))
-			throw new Exception(error);
+		if(error != null) {
+			if(error.startsWith("su: access granted, courtesy of www.magicandroidapps.com"))
+				error = error.substring(56);
+			if(error.length() > 0)
+				throw new Exception(error);
+		}
 	}
 }
