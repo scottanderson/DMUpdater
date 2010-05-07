@@ -3,6 +3,9 @@ package org.droidmod.updater;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.droidmod.updater.DownloadUtil.MD5Callback;
@@ -171,6 +174,11 @@ public class DownloadHelper {
 	}
 	private void doDownloadFile(final String url, final String expect_md5, final File where, final DownloadCallback callback) throws Exception {
 		if(where.exists()) {
+			if(expect_md5 == null) {
+				callback.onSuccess(where);
+				return;
+			}
+
 			du.md5(where, new MD5Callback() {
 				public void onSuccess(String actual_md5) {
 					String message = "Calculating md5 of " + where.getName() + "...";
@@ -238,6 +246,50 @@ public class DownloadHelper {
 					icon = R.drawable.current;
 				roms.add(new RomDescriptor(RomType.ROM_TGZ, name, rev, dispid, url, md5, icon));
 			}
+
+		String[] files = new File("/sdcard").list();
+		Arrays.sort(files);
+		Arrays.sort(files, Collections.reverseOrder());
+		for(String path : files) {
+			if(!path.endsWith(".zip"))
+				continue;
+
+			String name = path;
+			if(!name.startsWith("droidmod_sholes-ota-eng."))
+				continue;
+			// remove up to the name
+			name = name.substring(24);
+			// remove the name
+			int n = name.indexOf('.');
+			String author = name.substring(0, n);
+			name = name.substring(n + 1);
+			// remove '.zip'
+			name = name.substring(0, name.length() - 4);
+
+			// now format is YYYYMMDD.HHMMSS
+			try {
+				int year = Integer.parseInt(name.substring(0, 4));
+				int month = Integer.parseInt(name.substring(4, 6));
+				int day = Integer.parseInt(name.substring(6, 8));
+				int hour = Integer.parseInt(name.substring(9, 11));
+				int minute = Integer.parseInt(name.substring(11, 13));
+				int second = Integer.parseInt(name.substring(13, 15));
+
+				year -= 1900;
+				month--;
+
+				Date d = new Date(year, month, day, hour, minute, second);
+				name = d.toLocaleString();
+			} catch(NumberFormatException e) {
+				e.printStackTrace();
+			}
+
+			name += " [" + author + "]";
+
+			String dispid = "/sdcard/" + path;
+			String url = "file://sdcard/" + path;
+			roms.add(new RomDescriptor(RomType.UPDATE_ZIP, name, 0, dispid, url, null, R.drawable.stock));
+		}
 
 		return roms;
 	}
