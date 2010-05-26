@@ -1,7 +1,9 @@
 package org.droidmod.updater;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
@@ -90,16 +92,18 @@ public class Updater extends Activity implements Caller {
 		checkRoot();
 	}
 
-	private void checkRoot() {
-		boolean foundRoot = false;
+	private String findExecutable(String executable) {
 		String path = System.getenv("PATH");
 		for(String pe : path.split(":")) {
-			if(new File(pe + "/su").exists()) {
-				foundRoot = true;
-				break;
-			}
+			File f = new File(pe + "/" + executable);
+			if(f.exists())
+				return f.getAbsolutePath();
 		}
-		if(!foundRoot) {
+		return null;
+	}
+
+	private void checkRoot() {
+		if(findExecutable("su") == null) {
 			notRooted();
 			return;
 		}
@@ -179,13 +183,32 @@ public class Updater extends Activity implements Caller {
 	private void rootAndSdcardVerified() {
 		// /sdcard is mounted, check if they have enough space
 		try {
-			String result = SuperUser.oneShot("/system/bin/toolbox df /sdcard");
-			/* /sdcard: 15654912K total, 13663360K used, 1991552K available (block size 32768) */
-			String[] space = result.split(" ");
-			String kb = space[5];
-			if((space.length != 10) || !"available".equals(space[6]) || !kb.endsWith("K"))
-				throw new IllegalStateException(result);
-			kb = kb.substring(0, kb.length() - 1);
+			String kb = null;
+			try {
+				String result = SuperUser.oneShot("toolbox df /sdcard");
+				/* /sdcard: 15654912K total, 13663360K used, 1991552K available (block size 32768) */
+				String[] space = result.split(" ");
+				kb = space[5];
+				if((space.length != 10) || !"available".equals(space[6]) || !kb.endsWith("K"))
+					throw new IllegalStateException(result);
+				kb = kb.substring(0, kb.length() - 1);
+			} catch(ArrayIndexOutOfBoundsException e) {
+				// CyanogenMod does not have toolbox df
+				String busybox = findExecutable("busybox");
+				if(busybox == null)
+					throw new Exception("Couldn't find toolbox df, or busybox df");
+				String result = SuperUser.oneShot(busybox + " df /sdcard");
+				/* Filesystem           1K-blocks      Used Available Use% Mounted on */
+				/* /dev/block//vold/179:1                                             */
+				/*                       15654912  15170880    484032  97% /sdcard    */
+				int useLocation = result.indexOf("Available");
+				String[] lines = result.split("\n");
+				kb = lines[lines.length - 1];
+				kb = kb.substring(useLocation);
+				kb = kb.trim();
+				kb = kb.substring(0, kb.indexOf(' '));
+			}
+
 			int kb_i = Integer.parseInt(kb);
 			if(kb_i >= 250 * 1024) {
 				enoughSpaceVerified();
@@ -252,14 +275,34 @@ public class Updater extends Activity implements Caller {
 		}
 	}
 
+	private void runShell(String command) throws Exception {
+		Process p = Runtime.getRuntime().exec(command);
+		if(p.waitFor() != 0) {
+			// Check stderr
+			BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			String line;
+			String error = null;
+			while (err.ready() && (line = err.readLine()) != null) {
+				if(error == null)
+					error = line;
+				else
+					error += "\n" + line;
+			}
+
+			throw new Exception(error);
+		}
+	}
+
 	private void doRecoveryToolsDownload() {
 		try {
 			dh.downloadFile(Downloadable.RECOVERY_TOOLS, recovery_tools, new DownloadCallback() {
 				public void onSuccess(File f) {
 					try {
-						Runtime.getRuntime().exec("chmod 755 " + recovery_tools.getAbsolutePath());
-						Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + flash_image.getAbsolutePath());
-						Runtime.getRuntime().exec("toolbox ln " + recovery_tools.getAbsolutePath() + " " + dump_image.getAbsolutePath());
+						runShell("chmod 755 " + recovery_tools.getAbsolutePath());
+						if(!flash_image.exists())
+							runShell("ln " + recovery_tools.getAbsolutePath() + " " + flash_image.getAbsolutePath());
+						if(!dump_image.exists())
+							runShell("ln " + recovery_tools.getAbsolutePath() + " " + dump_image.getAbsolutePath());
 					} catch(Exception e) {
 						showException(e);
 						return;
@@ -284,7 +327,7 @@ public class Updater extends Activity implements Caller {
 			dh.downloadFile(Downloadable.NANDDUMP, nanddump, new DownloadCallback() {
 				public void onSuccess(File f) {
 					try {
-						Runtime.getRuntime().exec("chmod 755 " + nanddump.getAbsolutePath());
+						runShell("chmod 755 " + nanddump.getAbsolutePath());
 					} catch(Exception e) {
 						showException(e);
 						return;
