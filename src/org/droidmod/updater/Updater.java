@@ -16,8 +16,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -164,7 +164,7 @@ public class Updater extends Activity implements Caller {
 		// They have root, check if /sdcard is mounted
 		try {
 			String mounts = SuperUser.oneShot("mount");
-			if(mounts.contains(" /sdcard ")) {
+			if(mounts.contains(" /mnt/sdcard ") || mounts.contains(" /sdcard ")) {
 				rootAndSdcardVerified();
 				return;
 			} else {
