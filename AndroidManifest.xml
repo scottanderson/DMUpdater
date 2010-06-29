@@ -6,7 +6,7 @@
 	<application
 	    android:icon="@drawable/icon"
 	    android:label="@string/app_label"
-		android:name="SholesModUpdater"
+		android:name="DroidModUpdater"
 		android:persistent="true">
 		<activity
 		    android:name="org.droidmod.updater.Updater"
